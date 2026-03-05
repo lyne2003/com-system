@@ -14,16 +14,19 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Enable Apache rewrite
 RUN a2enmod rewrite
 
+# 🔥 Tell Apache to serve Laravel from /public
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy project
 COPY . .
 
-# Install Laravel dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Fix permissions
+# Permissions
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
