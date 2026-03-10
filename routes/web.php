@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\OpportunityController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,7 +32,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/contacts', [ContactController::class, 'store'])->name('contacts.store');
     Route::get('/contacts/{id}/edit', [ContactController::class, 'edit'])->name('contacts.edit');
     Route::put('/contacts/{id}', [ContactController::class, 'update'])->name('contacts.update');
-    
+
+    Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities.index');
+    Route::get('/opportunities/create', [OpportunityController::class, 'create'])->name('opportunities.create');
+    Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');
+    Route::get('/opportunities/{id}/edit', [OpportunityController::class, 'edit'])->name('opportunities.edit');
+    Route::post('/opportunities/{id}/update', [OpportunityController::class, 'update'])->name('opportunities.update');
 });
 
 Route::get('/countries/by-region/{region}', [CompanyController::class, 'getCountriesByRegion']);
