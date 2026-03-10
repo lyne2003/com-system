@@ -16,13 +16,21 @@
 
 <div class="py-6">
 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
+<div class="mb-6">
+<input
+type="text"
+id="searchInput"
+placeholder="Search company, part number, country, project..."
+class="w-full border rounded-lg px-4 py-2"
+onkeyup="searchOpportunities()">
+</div>
 @foreach($opportunities as $opportunity)
 
-<div class="bg-white shadow rounded-lg p-6 mb-6">
+<div x-data="{ open:false }" class="opportunity-card bg-white shadow rounded-lg mb-6">
 
-    {{-- Opportunity Header --}}
-    <div class="mb-4">
+    {{-- CLICKABLE HEADER --}}
+    <div @click="open = !open" class="p-6 cursor-pointer">
+
         <h3 class="text-lg font-bold">
             {{ $opportunity->company_name ?? 'No Company' }}
         </h3>
@@ -52,18 +60,21 @@
             Closed Lost Reason: {{ $opportunity->closed_lost_reason }}
         </p>
         @endif
+
     </div>
 
-    {{-- EDIT BUTTON --}}
-<a href="{{ route('opportunities.edit', $opportunity->id) }}"
-class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold px-4 py-2 rounded shadow">
 
-Edit
+    {{-- EXPANDABLE SECTION --}}
+    <div x-show="open" x-transition class="px-6 pb-6">
 
-</a>
+        {{-- EDIT BUTTON --}}
+        <a href="{{ route('opportunities.edit', $opportunity->id) }}"
+        class="inline-flex items-center px-4 py-2 mb-4 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
+        Edit
+        </a>
 
 
-    <div class="grid grid-cols-2 gap-8">
+        <div class="grid grid-cols-2 gap-8">
 
         {{-- PRODUCTS --}}
         <div>
@@ -210,6 +221,8 @@ Edit
 
         </div>
 
+        </div>
+
     </div>
 
 </div>
@@ -218,5 +231,31 @@ Edit
 
 </div>
 </div>
+<script>
 
+function searchOpportunities(){
+
+let input = document.getElementById("searchInput").value.toLowerCase();
+
+let cards = document.querySelectorAll(".opportunity-card");
+
+cards.forEach(function(card){
+
+let text = card.innerText.toLowerCase();
+
+if(text.includes(input)){
+
+card.style.display = "block";
+
+}else{
+
+card.style.display = "none";
+
+}
+
+});
+
+}
+
+</script>
 </x-app-layout>
