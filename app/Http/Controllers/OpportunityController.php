@@ -130,6 +130,7 @@ public function store(Request $request)
         return redirect()->route('opportunities.index');
 
     } catch (\Exception $e) {
+        dd($e->getMessage());
 
         DB::rollback();
         return back()->with('error', $e->getMessage());

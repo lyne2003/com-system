@@ -92,7 +92,21 @@ Add Opportunity
 <h3 class="text-lg font-bold mb-4">Products</h3>
 
 <table class="w-full border text-sm">
+<div class="mb-4 flex items-center gap-3">
 
+<input 
+type="file" 
+id="excelFile"
+accept=".xlsx,.xls"
+class="border p-2 rounded"
+onchange="importExcelProducts(event)">
+
+<span class="text-sm text-gray-500">
+Excel must contain columns in this order:  
+Part Number | Qty | Unit Price | MOQ | MPQ | Lead Time | Date Code
+</span>
+
+</div>
 <thead class="bg-gray-100">
 <tr>
 <th class="border p-2">Part Number</th>
@@ -210,7 +224,7 @@ Save Opportunity
 
 </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script>
 let productIndex = 1;
 
@@ -310,6 +324,95 @@ activityIndex++;
 function removeActivity(button) {
 
 button.closest('tr').remove();
+
+}
+
+function importExcelProducts(event){
+
+const file = event.target.files[0];
+
+if(!file) return;
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+const data = new Uint8Array(e.target.result);
+
+const workbook = XLSX.read(data,{type:'array'});
+
+const sheetName = workbook.SheetNames[0];
+
+const sheet = workbook.Sheets[sheetName];
+
+const rows = XLSX.utils.sheet_to_json(sheet,{header:1});
+
+if(rows.length <= 1){
+alert("Excel file is empty");
+return;
+}
+
+const table = document.getElementById("productsTable");
+
+rows.slice(1).forEach(row => {
+
+const partNumber = row[0] ?? "";
+const qty = row[1] ?? "";
+const price = row[2] ?? "";
+const moq = row[3] ?? "";
+const mpq = row[4] ?? "";
+const lead = row[5] ?? "";
+const dateCode = row[6] ?? "";
+
+const html = `
+<tr class="product-row">
+
+<td>
+<input name="products[${productIndex}][part_number]" value="${partNumber}" class="w-full border p-1">
+</td>
+
+<td>
+<input name="products[${productIndex}][quantity]" value="${qty}" class="w-full border p-1">
+</td>
+
+<td>
+<input name="products[${productIndex}][unit_price]" value="${price}" class="w-full border p-1">
+</td>
+
+<td>
+<input name="products[${productIndex}][moq]" value="${moq}" class="w-full border p-1">
+</td>
+
+<td>
+<input name="products[${productIndex}][mpq]" value="${mpq}" class="w-full border p-1">
+</td>
+
+<td>
+<input name="products[${productIndex}][lead_time]" value="${lead}" class="w-full border p-1">
+</td>
+
+<td>
+<input name="products[${productIndex}][date_code]" value="${dateCode}" class="w-full border p-1">
+</td>
+
+<td>
+<button type="button" onclick="removeProduct(this)" class="text-red-500">
+Remove
+</button>
+</td>
+
+</tr>
+`;
+
+table.insertAdjacentHTML("beforeend", html);
+
+productIndex++;
+
+});
+
+};
+
+reader.readAsArrayBuffer(file);
 
 }
 </script>
