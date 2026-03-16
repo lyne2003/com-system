@@ -224,7 +224,7 @@ Save Opportunity
 
 </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="{{ asset('js/xlsx.full.min.js') }}"></script>
 <script>
 let productIndex = 1;
 

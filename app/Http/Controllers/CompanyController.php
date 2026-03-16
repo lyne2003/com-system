@@ -30,7 +30,7 @@ class CompanyController extends Controller
                 'statuses.name as status_name'
             )
             ->orderBy('companies.created_at', 'desc')
-            ->get();
+            ->paginate(25);
 
         return view('companies.index', compact('companies'));
     }

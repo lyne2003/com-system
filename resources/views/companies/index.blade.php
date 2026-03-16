@@ -121,6 +121,11 @@ No companies found
 
 </table>
 
+<!-- Pagination -->
+<div class="mt-4">
+{{ $companies->links() }}
+</div>
+
 </div>
 </div>
 </div>

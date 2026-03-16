@@ -229,6 +229,11 @@ onkeyup="searchOpportunities()">
 
 @endforeach
 
+<!-- Pagination -->
+<div class="mt-4">
+{{ $opportunities->links() }}
+</div>
+
 </div>
 </div>
 <script>

@@ -19,7 +19,7 @@ class ContactController extends Controller
                 'countries.name as country_name'
             )
             ->orderBy('contacts.created_at', 'desc')
-            ->get();
+            ->paginate(25);
 
         return view('contacts.index', compact('contacts'));
     }

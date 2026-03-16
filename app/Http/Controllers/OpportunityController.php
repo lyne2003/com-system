@@ -27,13 +27,20 @@ class OpportunityController extends Controller
             $query->where('opportunities.status', $request->status);
         }
 
-        $opportunities = $query->get();
+        $opportunities = $query->orderBy('opportunities.created_at', 'desc')->paginate(20);
 
-        // Get products
-        $products = DB::table('products')->get()->groupBy('opportunity_id');
+        // Get only products and activities for the fetched opportunities
+        $opportunityIds = $opportunities->pluck('id')->toArray();
 
-        // Get activities
-        $activities = DB::table('activities')->get()->groupBy('opportunity_id');
+        $products = DB::table('products')
+            ->whereIn('opportunity_id', $opportunityIds)
+            ->get()
+            ->groupBy('opportunity_id');
+
+        $activities = DB::table('activities')
+            ->whereIn('opportunity_id', $opportunityIds)
+            ->get()
+            ->groupBy('opportunity_id');
 
         return view('opportunities.index', [
         'opportunities' => $opportunities,

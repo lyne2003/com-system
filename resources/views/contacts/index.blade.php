@@ -133,6 +133,11 @@ No contacts found
 
 </table>
 
+<!-- Pagination -->
+<div class="mt-4">
+{{ $contacts->links() }}
+</div>
+
 </div>
 </div>
 </div>
