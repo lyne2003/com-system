@@ -27,6 +27,14 @@
                     <x-nav-link :href="route('opportunities.index')" :active="request()->routeIs('opportunities.*')">
                         {{ __('Opportunities') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('rfqs.index')" :active="request()->routeIs('rfqs.*')">
+                        {{ __('RFQs') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('manufacturers.index')" :active="request()->routeIs('manufacturers.*')">
+                        {{ __('Manufacturers') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -81,6 +89,26 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')">
+                {{ __('Companies') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('contacts.index')" :active="request()->routeIs('contacts.*')">
+                {{ __('Contacts') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('opportunities.index')" :active="request()->routeIs('opportunities.*')">
+                {{ __('Opportunities') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('rfqs.index')" :active="request()->routeIs('rfqs.*')">
+                {{ __('RFQs') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('manufacturers.index')" :active="request()->routeIs('manufacturers.*')">
+                {{ __('Manufacturers') }}
             </x-responsive-nav-link>
         </div>
 

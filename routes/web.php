@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OpportunityController;
+use App\Http\Controllers\RfqController;
+use App\Http\Controllers\ManufacturerController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -38,6 +40,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');
     Route::get('/opportunities/{id}/edit', [OpportunityController::class, 'edit'])->name('opportunities.edit');
     Route::post('/opportunities/{id}/update', [OpportunityController::class, 'update'])->name('opportunities.update');
+
+    Route::get('/rfqs', [RfqController::class, 'index'])->name('rfqs.index');
+    Route::get('/rfqs/create', [RfqController::class, 'create'])->name('rfqs.create');
+    Route::post('/rfqs', [RfqController::class, 'store'])->name('rfqs.store');
+    Route::get('/rfqs/{id}/edit', [RfqController::class, 'edit'])->name('rfqs.edit');
+    Route::post('/rfqs/{id}/update', [RfqController::class, 'update'])->name('rfqs.update');
+    Route::delete('/rfqs/{id}', [RfqController::class, 'destroy'])->name('rfqs.destroy');
+
+    Route::get('/manufacturers', [ManufacturerController::class, 'index'])->name('manufacturers.index');
+    Route::get('/manufacturers/create', [ManufacturerController::class, 'create'])->name('manufacturers.create');
+    Route::post('/manufacturers', [ManufacturerController::class, 'store'])->name('manufacturers.store');
+    Route::get('/manufacturers/{id}/edit', [ManufacturerController::class, 'edit'])->name('manufacturers.edit');
+    Route::post('/manufacturers/{id}/update', [ManufacturerController::class, 'update'])->name('manufacturers.update');
+    Route::delete('/manufacturers/{id}', [ManufacturerController::class, 'destroy'])->name('manufacturers.destroy');
 });
 
 Route::get('/countries/by-region/{region}', [CompanyController::class, 'getCountriesByRegion']);
