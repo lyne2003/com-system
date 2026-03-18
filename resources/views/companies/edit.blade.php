@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800">
-            Edit Company
+            Edit Account
         </h2>
     </x-slot>
 
@@ -159,7 +159,7 @@
 
                     <button type="submit"
                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                        Update Company
+                        Update
                     </button>
                 </div>
 

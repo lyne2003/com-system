@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800">
-            Create Company
+            Create Account
         </h2>
     </x-slot>
 
@@ -135,7 +135,7 @@
 <div class="mt-8 pt-6 border-t text-right">
     <button type="submit"
         class="px-4 py-2 bg-blue-600 text-white rounded-md">
-        Save Company
+        Save
     </button>
 </div>
                 </div>
