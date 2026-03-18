@@ -110,6 +110,10 @@
                         <span>🏢 {{ $rfq->client_name }}</span>
                         @endif
 
+                        @if($rfq->client_region)
+                        <span>🌍 {{ $rfq->client_region }}</span>
+                        @endif
+
                         @if($rfq->inquiry_n)
                         <span>📋 Inquiry #: {{ $rfq->inquiry_n }}</span>
                         @endif
@@ -117,11 +121,28 @@
                         @if($rfq->date)
                         <span>📅 {{ \Carbon\Carbon::parse($rfq->date)->format('d M Y') }}</span>
                         @endif
+
+                        @php
+                            $orderCode = null;
+                            if ($rfq->date) {
+                                $datePart = \Carbon\Carbon::parse($rfq->date)->format('Ymd');
+                                $orderCode = $rfq->inquiry_n ? $datePart . '-' . $rfq->inquiry_n : $datePart;
+                            }
+                        @endphp
+                        @if($orderCode)
+                        <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700">🔖 {{ $orderCode }}</span>
+                        @endif
                     </div>
                 </div>
 
                 {{-- Actions + Expand arrow --}}
                 <div class="flex items-center gap-3 mt-1">
+                    <a href="{{ route('rfqs.source.show', $rfq->id) }}"
+                       @click.stop
+                       class="text-green-600 hover:text-green-800 text-sm font-medium">
+                        🔍 Source
+                    </a>
+
                     <a href="{{ route('rfqs.edit', $rfq->id) }}"
                        @click.stop
                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">

@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'mouser' => [
+        'api_key' => env('MOUSER_API_KEY'),
+    ],
+
+    'digikey' => [
+        'client_id'     => env('DIGIKEY_CLIENT_ID'),
+        'client_secret' => env('DIGIKEY_CLIENT_SECRET'),
+    ],
+
+    'ti' => [
+        'client_id'     => env('TI_CLIENT_ID'),
+        'client_secret' => env('TI_CLIENT_SECRET'),
+    ],
+
 ];

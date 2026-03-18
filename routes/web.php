@@ -7,6 +7,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\RfqController;
 use App\Http\Controllers\ManufacturerController;
+use App\Http\Controllers\SourcingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,6 +48,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/rfqs/{id}/edit', [RfqController::class, 'edit'])->name('rfqs.edit');
     Route::post('/rfqs/{id}/update', [RfqController::class, 'update'])->name('rfqs.update');
     Route::delete('/rfqs/{id}', [RfqController::class, 'destroy'])->name('rfqs.destroy');
+
+    // Sourcing
+    Route::get('/rfqs/{id}/source', [SourcingController::class, 'show'])->name('rfqs.source.show');
+    Route::post('/rfqs/{id}/source/run', [SourcingController::class, 'run'])->name('rfqs.source.run');
 
     Route::get('/manufacturers', [ManufacturerController::class, 'index'])->name('manufacturers.index');
     Route::get('/manufacturers/create', [ManufacturerController::class, 'create'])->name('manufacturers.create');

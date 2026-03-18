@@ -20,7 +20,14 @@ class RfqController extends Controller
             ->orderBy('line_number')
             ->get();
 
-        $companies = DB::table('companies')->select('id', 'name')->orderBy('name')->get();
+        $companies = DB::table('companies')
+            ->join('types', 'companies.type_id', '=', 'types.id')
+            ->where('types.name', 'Client')
+            ->leftJoin('regions', 'companies.region_id', '=', 'regions.id')
+            ->select('companies.id', 'companies.name', 'regions.name as region_name')
+            ->orderBy('companies.name')
+            ->get();
+
         $manufacturers = DB::table('manufacturers')->where('is_active', true)->select('id', 'name')->orderBy('name')->get();
 
         return view('rfqs.edit', compact('rfq', 'items', 'companies', 'manufacturers'));
@@ -110,9 +117,11 @@ class RfqController extends Controller
     {
         $query = DB::table('rfqs')
             ->leftJoin('companies', 'rfqs.client_id', '=', 'companies.id')
+            ->leftJoin('regions', 'companies.region_id', '=', 'regions.id')
             ->select(
                 'rfqs.*',
-                'companies.name as client_name'
+                'companies.name as client_name',
+                'regions.name as client_region'
             );
 
         // Search filter
@@ -159,7 +168,15 @@ class RfqController extends Controller
 
     public function create()
     {
-        $companies = DB::table('companies')->select('id', 'name')->orderBy('name')->get();
+        // Only companies whose type is "Client"
+        $companies = DB::table('companies')
+            ->join('types', 'companies.type_id', '=', 'types.id')
+            ->where('types.name', 'Client')
+            ->leftJoin('regions', 'companies.region_id', '=', 'regions.id')
+            ->select('companies.id', 'companies.name', 'regions.name as region_name')
+            ->orderBy('companies.name')
+            ->get();
+
         $manufacturers = DB::table('manufacturers')->where('is_active', true)->select('id', 'name')->orderBy('name')->get();
 
         return view('rfqs.create', compact('companies', 'manufacturers'));
@@ -217,7 +234,8 @@ class RfqController extends Controller
 
             DB::commit();
 
-            return redirect()->route('rfqs.index')->with('success', 'RFQ created successfully.');
+            // Trigger sourcing automatically
+            return redirect()->route('rfqs.source.run', $rfq_id);
 
         } catch (\Exception $e) {
             DB::rollback();

@@ -62,15 +62,20 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
-                <select name="client_id" class="w-full border rounded p-2">
+                <select name="client_id" id="clientSelect" class="w-full border rounded p-2"
+                        onchange="showClientRegion(this)">
                     <option value="">-- Select Client --</option>
                     @foreach($companies as $company)
                     <option value="{{ $company->id }}"
-                        @if(old('client_id', $rfq->client_id) == $company->id) selected @endif>
+                            data-region="{{ $company->region_name ?? '' }}"
+                            @if(old('client_id', $rfq->client_id) == $company->id) selected @endif>
                         {{ $company->name }}
                     </option>
                     @endforeach
                 </select>
+                <p id="clientRegionDisplay" class="mt-1 text-sm text-blue-600 font-medium hidden">
+                    📍 Region: <span id="clientRegionName"></span>
+                </p>
             </div>
 
             <div>
@@ -266,6 +271,28 @@ function updateLineNumbers() {
         if (lineInput) lineInput.value = index + 1;
     });
 }
+
+function showClientRegion(select) {
+    const region = select.options[select.selectedIndex].getAttribute('data-region');
+    const display = document.getElementById('clientRegionDisplay');
+    const nameSpan = document.getElementById('clientRegionName');
+
+    if (region) {
+        nameSpan.textContent = region;
+        display.classList.remove('hidden');
+    } else {
+        display.classList.add('hidden');
+        nameSpan.textContent = '';
+    }
+}
+
+// Run on page load to show region for the pre-selected client
+document.addEventListener('DOMContentLoaded', function () {
+    const select = document.getElementById('clientSelect');
+    if (select && select.value) {
+        showClientRegion(select);
+    }
+});
 
 function importExcelItems(event) {
     const file = event.target.files[0];

@@ -62,14 +62,30 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
-                <select name="client_id" class="w-full border rounded p-2">
+                <select name="client_id" id="clientSelect" class="w-full border rounded p-2"
+                        onchange="showClientRegion(this)">
                     <option value="">-- Select Client --</option>
                     @foreach($companies as $company)
-                    <option value="{{ $company->id }}" @if(old('client_id') == $company->id) selected @endif>
+                    <option value="{{ $company->id }}"
+                            data-region="{{ $company->region_name ?? '' }}"
+                            @if(old('client_id') == $company->id) selected @endif>
                         {{ $company->name }}
                     </option>
                     @endforeach
                 </select>
+                <p id="clientRegionDisplay" class="mt-1 text-sm text-blue-600 font-medium hidden">
+                    📍 Region: <span id="clientRegionName"></span>
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Order Code</label>
+                <input
+                    type="text"
+                    id="orderCodeDisplay"
+                    class="w-full border rounded p-2 bg-gray-50 text-gray-600"
+                    placeholder="Auto-generated from Date + Inquiry #"
+                    readonly>
             </div>
 
             <div>
@@ -144,9 +160,9 @@
             <tbody id="itemsTable">
                 <tr class="item-row">
                     <td><input name="items[0][line_number]" value="1" class="w-full border p-1 text-center" readonly></td>
-                    <td><input name="items[0][overallcode]" class="w-full border p-1"></td>
-                    <td><input name="items[0][partnumber]" class="w-full border p-1" placeholder="Required"></td>
-                    <td><input name="items[0][qty]" type="number" class="w-full border p-1"></td>
+                    <td><input name="items[0][overallcode]" id="overallcode_0" class="w-full border p-1 bg-gray-50 text-gray-500" readonly placeholder="Auto"></td>
+                    <td><input name="items[0][partnumber]" class="w-full border p-1 item-partnumber" placeholder="Required" oninput="refreshOverallCode(this)"></td>
+                    <td><input name="items[0][qty]" type="number" class="w-full border p-1 item-qty" oninput="refreshOverallCode(this)"></td>
                     <td><input name="items[0][uom]" class="w-full border p-1" placeholder="pcs"></td>
                     <td><input name="items[0][target_price]" type="number" step="0.01" class="w-full border p-1"></td>
                     <td>
@@ -202,6 +218,39 @@ const manufacturerOptions = `<option value="">-- Select --</option>` +
     .map(m => `<option value="${m.id}">${m.name}</option>`)
     .join('');
 
+function getOrderCode() {
+    return document.getElementById('orderCodeDisplay').value.trim();
+}
+
+function buildOverallCode(lineNum, partNumber, qty) {
+    const orderCode = getOrderCode();
+    const parts = [orderCode, lineNum, partNumber, qty].filter(v => v !== '' && v !== null && v !== undefined);
+    return parts.join('-');
+}
+
+function refreshOverallCode(input) {
+    const row = input.closest('tr');
+    const lineInput = row.querySelector('input[name*="[line_number]"]');
+    const partInput = row.querySelector('input[name*="[partnumber]"]');
+    const qtyInput  = row.querySelector('input[name*="[qty]"]');
+    const overallInput = row.querySelector('input[name*="[overallcode]"]');
+
+    if (overallInput) {
+        overallInput.value = buildOverallCode(
+            lineInput ? lineInput.value : '',
+            partInput ? partInput.value.trim() : '',
+            qtyInput  ? qtyInput.value.trim() : ''
+        );
+    }
+}
+
+function refreshAllOverallCodes() {
+    document.querySelectorAll('#itemsTable tr.item-row').forEach(row => {
+        const partInput = row.querySelector('input[name*="[partnumber]"]');
+        if (partInput) refreshOverallCode(partInput);
+    });
+}
+
 function addItem() {
     const table = document.getElementById('itemsTable');
     const lineNum = table.rows.length + 1;
@@ -209,9 +258,9 @@ function addItem() {
     const row = `
     <tr class="item-row">
         <td><input name="items[${itemIndex}][line_number]" value="${lineNum}" class="w-full border p-1 text-center" readonly></td>
-        <td><input name="items[${itemIndex}][overallcode]" class="w-full border p-1"></td>
-        <td><input name="items[${itemIndex}][partnumber]" class="w-full border p-1" placeholder="Required"></td>
-        <td><input name="items[${itemIndex}][qty]" type="number" class="w-full border p-1"></td>
+        <td><input name="items[${itemIndex}][overallcode]" class="w-full border p-1 bg-gray-50 text-gray-500" readonly placeholder="Auto"></td>
+        <td><input name="items[${itemIndex}][partnumber]" class="w-full border p-1 item-partnumber" placeholder="Required" oninput="refreshOverallCode(this)"></td>
+        <td><input name="items[${itemIndex}][qty]" type="number" class="w-full border p-1 item-qty" oninput="refreshOverallCode(this)"></td>
         <td><input name="items[${itemIndex}][uom]" class="w-full border p-1" placeholder="pcs"></td>
         <td><input name="items[${itemIndex}][target_price]" type="number" step="0.01" class="w-full border p-1"></td>
         <td>
@@ -232,6 +281,7 @@ function addItem() {
 function removeItem(button) {
     button.closest('tr').remove();
     updateLineNumbers();
+    refreshAllOverallCodes();
 }
 
 function updateLineNumbers() {
@@ -240,7 +290,60 @@ function updateLineNumbers() {
         const lineInput = row.querySelector('input[name*="[line_number]"]');
         if (lineInput) lineInput.value = index + 1;
     });
+    refreshAllOverallCodes();
 }
+
+function showClientRegion(select) {
+    const region = select.options[select.selectedIndex].getAttribute('data-region');
+    const display = document.getElementById('clientRegionDisplay');
+    const nameSpan = document.getElementById('clientRegionName');
+
+    if (region) {
+        nameSpan.textContent = region;
+        display.classList.remove('hidden');
+    } else {
+        display.classList.add('hidden');
+        nameSpan.textContent = '';
+    }
+}
+
+function updateOrderCode() {
+    const dateVal   = document.querySelector('input[name="date"]').value;
+    const inquiryVal = document.querySelector('input[name="inquiry_n"]').value.trim();
+    const display   = document.getElementById('orderCodeDisplay');
+
+    if (!dateVal) {
+        display.value = '';
+        return;
+    }
+
+    // Format date as yyyymmdd
+    const formatted = dateVal.replace(/-/g, '');
+    display.value = inquiryVal ? `${formatted}-${inquiryVal}` : formatted;
+}
+
+// Attach listeners to date and inquiry # fields
+document.addEventListener('DOMContentLoaded', function () {
+    const dateInput    = document.querySelector('input[name="date"]');
+    const inquiryInput = document.querySelector('input[name="inquiry_n"]');
+
+    dateInput.addEventListener('change', function() {
+        updateOrderCode();
+        refreshAllOverallCodes();
+    });
+    inquiryInput.addEventListener('input', function() {
+        updateOrderCode();
+        refreshAllOverallCodes();
+    });
+
+    // Run on page load in case old() value is pre-selected
+    updateOrderCode();
+
+    const select = document.getElementById('clientSelect');
+    if (select && select.value) {
+        showClientRegion(select);
+    }
+});
 
 function importExcelItems(event) {
     const file = event.target.files[0];
