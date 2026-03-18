@@ -32,7 +32,7 @@ class="border rounded px-3 py-2 w-64">
 id="companyFilter"
 class="border rounded px-3 py-2">
 
-<option value="">All Companies</option>
+<option value="">All Accounts</option>
 
 @foreach($contacts->pluck('company_name')->unique() as $company)
 
@@ -63,7 +63,8 @@ Reset
 <th class="px-4 py-2 text-left">Last Name</th>
 <th class="px-4 py-2 text-left">Email</th>
 <th class="px-4 py-2 text-left">Phone</th>
-<th class="px-4 py-2 text-left">Company</th>
+<th class="px-4 py-2 text-left">Account</th>
+</th>
 <th class="px-4 py-2 text-left">Position</th>
 <th class="px-4 py-2 text-left">Country</th>
 <th class="px-4 py-2 text-left">Created</th>

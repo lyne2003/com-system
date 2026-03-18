@@ -55,10 +55,10 @@ class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
 </div>
 
 <div>
-<label class="block text-sm font-medium text-gray-700">Company</label>
+<label class="block text-sm font-medium text-gray-700">Account</label>
 <select name="company_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
 
-<option value="">Select Company</option>
+<option value="">Select Account</option>
 
 @foreach($companies as $company)
 <option value="{{ $company->id }}"
