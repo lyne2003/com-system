@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');
     Route::get('/opportunities/{id}/edit', [OpportunityController::class, 'edit'])->name('opportunities.edit');
     Route::post('/opportunities/{id}/update', [OpportunityController::class, 'update'])->name('opportunities.update');
+    Route::delete('/opportunities/{id}', [OpportunityController::class, 'destroy'])->name('opportunities.destroy');
 
     Route::get('/rfqs', [RfqController::class, 'index'])->name('rfqs.index');
     Route::get('/rfqs/create', [RfqController::class, 'create'])->name('rfqs.create');

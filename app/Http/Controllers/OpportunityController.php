@@ -51,12 +51,33 @@ class OpportunityController extends Controller
 
 public function create()
 {
-    $companies = DB::table('companies')->get();
-    $countries = DB::table('countries')->get();
-    $sales = DB::table('users')->get();
-    $engineers = DB::table('users')->get();
+    // Only companies whose type is "Client"
+    $companies = DB::table('companies')
+        ->join('types', 'companies.type_id', '=', 'types.id')
+        ->where('types.name', 'Client')
+        ->select('companies.id', 'companies.name')
+        ->orderBy('companies.name')
+        ->get();
 
-    return view('opportunities.create', compact('companies','countries','sales','engineers'));
+    // Only companies whose type is "Manufacturer"
+    $manufacturers = DB::table('companies')
+        ->join('types', 'companies.type_id', '=', 'types.id')
+        ->where('types.name', 'Manufacturer')
+        ->select('companies.id', 'companies.name')
+        ->orderBy('companies.name')
+        ->get();
+
+    $countries = DB::table('countries')->where('is_active', true)->orderBy('name')->get();
+    $sales = DB::table('users')->orderBy('name')->get();
+    $engineers = DB::table('users')->orderBy('name')->get();
+
+    // All contacts (we'll filter by company via JS)
+    $contacts = DB::table('contacts')
+        ->select('id', 'firstname', 'lastname', 'company_id')
+        ->orderBy('firstname')
+        ->get();
+
+    return view('opportunities.create', compact('companies', 'manufacturers', 'countries', 'sales', 'engineers', 'contacts'));
 }
 
 public function store(Request $request)
@@ -67,20 +88,21 @@ public function store(Request $request)
 
         // Insert Opportunity
         $opportunity_id = DB::table('opportunities')->insertGetId([
-            'company_id' => $request->company_id,
-            'country_id' => $request->country_id,
-            'project_application' => $request->project_application,
-            'status' => $request->status,
-
-            'assigned_sales_id' => $request->assigned_sales_id,
-            'assigned_engineer_id' => $request->assigned_engineer_id,
-            'notes' => $request->notes,
-
-            'closed_won_percentage' => $request->closed_won_percentage,
-            'closed_lost_reason' => $request->closed_lost_reason,
-
-            'created_at' => now(),
-            'updated_at' => now()
+            'opportunity_name'     => $request->opportunity_name,
+            'company_id'           => $request->company_id ?: null,
+            'contact_id'           => $request->contact_id ?: null,
+            'manufacturer_id'      => $request->manufacturer_id ?: null,
+            'country_id'           => $request->country_id ?: null,
+            'project_application'  => $request->project_application,
+            'status'               => $request->status,
+            'assigned_sales_id'    => $request->assigned_sales_id ?: null,
+            'assigned_engineer_id' => $request->assigned_engineer_id ?: null,
+            'estimated_amount'     => $request->estimated_amount ?: null,
+            'notes'                => $request->notes,
+            'closed_won_percentage'=> $request->closed_won_percentage ?: null,
+            'closed_lost_reason'   => $request->closed_lost_reason ?: null,
+            'created_at'           => now(),
+            'updated_at'           => now(),
         ]);
 
 
@@ -137,8 +159,6 @@ public function store(Request $request)
         return redirect()->route('opportunities.index');
 
     } catch (\Exception $e) {
-        dd($e->getMessage());
-
         DB::rollback();
         return back()->with('error', $e->getMessage());
     }
@@ -148,8 +168,23 @@ public function edit($id)
 {
     $opportunity = DB::table('opportunities')->where('id', $id)->first();
 
-    $companies = DB::table('companies')->get();
-    $countries = DB::table('countries')->get();
+    // Only companies whose type is "Client"
+    $companies = DB::table('companies')
+        ->join('types', 'companies.type_id', '=', 'types.id')
+        ->where('types.name', 'Client')
+        ->select('companies.id', 'companies.name')
+        ->orderBy('companies.name')
+        ->get();
+
+    // Only companies whose type is "Manufacturer"
+    $manufacturers = DB::table('companies')
+        ->join('types', 'companies.type_id', '=', 'types.id')
+        ->where('types.name', 'Manufacturer')
+        ->select('companies.id', 'companies.name')
+        ->orderBy('companies.name')
+        ->get();
+
+    $countries = DB::table('countries')->where('is_active', true)->orderBy('name')->get();
 
     $products = DB::table('products')
         ->where('opportunity_id', $id)
@@ -159,18 +194,45 @@ public function edit($id)
         ->where('opportunity_id', $id)
         ->get();
 
-    $sales = DB::table('users')->get();
-    $engineers = DB::table('users')->get();
+    $sales = DB::table('users')->orderBy('name')->get();
+    $engineers = DB::table('users')->orderBy('name')->get();
+
+    // All contacts (filtered by company via JS)
+    $contacts = DB::table('contacts')
+        ->select('id', 'firstname', 'lastname', 'company_id')
+        ->orderBy('firstname')
+        ->get();
 
     return view('opportunities.edit', compact(
         'opportunity',
         'companies',
+        'manufacturers',
         'countries',
         'products',
         'activities',
         'sales',
-        'engineers'
+        'engineers',
+        'contacts'
     ));
+}
+
+public function destroy($id)
+{
+    DB::beginTransaction();
+
+    try {
+        DB::table('products')->where('opportunity_id', $id)->delete();
+        DB::table('activities')->where('opportunity_id', $id)->delete();
+        DB::table('opportunities')->where('id', $id)->delete();
+
+        DB::commit();
+
+        return redirect()->route('opportunities.index')->with('success', 'Opportunity deleted successfully.');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->with('error', $e->getMessage());
+    }
 }
 
 public function update(Request $request, $id)
@@ -179,23 +241,24 @@ public function update(Request $request, $id)
 
     try {
 
-DB::table('opportunities')
-->where('id',$id)
-->update([
-    'company_id' => $request->company_id,
-    'country_id' => $request->country_id,
-    'project_application' => $request->project_application,
-    'status' => $request->status,
-
-    'assigned_sales_id' => $request->assigned_sales_id,
-    'assigned_engineer_id' => $request->assigned_engineer_id,
-    'notes' => $request->notes,
-
-    'closed_won_percentage' => $request->closed_won_percentage,
-    'closed_lost_reason' => $request->closed_lost_reason,
-
-    'updated_at' => now()
-]);
+        DB::table('opportunities')
+            ->where('id', $id)
+            ->update([
+                'opportunity_name'     => $request->opportunity_name,
+                'company_id'           => $request->company_id ?: null,
+                'contact_id'           => $request->contact_id ?: null,
+                'manufacturer_id'      => $request->manufacturer_id ?: null,
+                'country_id'           => $request->country_id ?: null,
+                'project_application'  => $request->project_application,
+                'status'               => $request->status,
+                'assigned_sales_id'    => $request->assigned_sales_id ?: null,
+                'assigned_engineer_id' => $request->assigned_engineer_id ?: null,
+                'estimated_amount'     => $request->estimated_amount ?: null,
+                'notes'                => $request->notes,
+                'closed_won_percentage'=> $request->closed_won_percentage ?: null,
+                'closed_lost_reason'   => $request->closed_lost_reason ?: null,
+                'updated_at'           => now(),
+            ]);
 
 
         // delete old products

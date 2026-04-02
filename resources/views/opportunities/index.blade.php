@@ -32,8 +32,12 @@ onkeyup="searchOpportunities()">
     <div @click="open = !open" class="p-6 cursor-pointer">
 
         <h3 class="text-lg font-bold">
-            {{ $opportunity->company_name ?? 'No Company' }}
+            {{ $opportunity->opportunity_name ?? ($opportunity->company_name ?? 'No Name') }}
         </h3>
+
+        @if($opportunity->opportunity_name && $opportunity->company_name)
+        <p class="text-sm text-gray-500">{{ $opportunity->company_name }}</p>
+        @endif
 
         <p class="text-gray-600">
             Country: {{ $opportunity->country_name ?? 'No Country' }}
@@ -43,21 +47,39 @@ onkeyup="searchOpportunities()">
             Project Application: {{ $opportunity->project_application }}
         </p>
 
-        <p class="text-sm text-gray-500">
-            Status: {{ $opportunity->status }}
+        @if($opportunity->estimated_amount)
+        <p class="text-gray-600 text-sm">
+            Estimated Amount: <span class="font-semibold text-gray-800">${{ number_format($opportunity->estimated_amount, 2) }}</span>
         </p>
+        @endif
+
+        <div class="mt-2">
+            @php
+                $statusColors = [
+                    'Qualification'            => 'bg-blue-100 text-blue-700',
+                    'Advance Closing'          => 'bg-purple-100 text-purple-700',
+                    'Closed Won'               => 'bg-green-100 text-green-700',
+                    'Closed Lost'              => 'bg-red-100 text-red-700',
+                    'Closed Lost to Competition' => 'bg-orange-100 text-orange-700',
+                ];
+                $colorClass = $statusColors[$opportunity->status] ?? 'bg-gray-100 text-gray-600';
+            @endphp
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold {{ $colorClass }}">
+                {{ $opportunity->status }}
+            </span>
+        </div>
 
         {{-- Closed Won --}}
-        @if($opportunity->status === 'Closed Won')
-        <p class="text-green-600 font-semibold mt-1">
+        @if($opportunity->status === 'Closed Won' && $opportunity->closed_won_percentage)
+        <p class="text-green-600 font-semibold mt-1 text-sm">
             Closed Won %: {{ $opportunity->closed_won_percentage }}%
         </p>
         @endif
 
         {{-- Closed Lost --}}
-        @if($opportunity->status === 'Closed Lost')
-        <p class="text-red-600 font-semibold mt-1">
-            Closed Lost Reason: {{ $opportunity->closed_lost_reason }}
+        @if(in_array($opportunity->status, ['Closed Lost', 'Closed Lost to Competition']) && $opportunity->closed_lost_reason)
+        <p class="text-red-600 font-semibold mt-1 text-sm">
+            Reason: {{ $opportunity->closed_lost_reason }}
         </p>
         @endif
 
@@ -67,11 +89,23 @@ onkeyup="searchOpportunities()">
     {{-- EXPANDABLE SECTION --}}
     <div x-show="open" x-transition class="px-6 pb-6">
 
-        {{-- EDIT BUTTON --}}
-        <a href="{{ route('opportunities.edit', $opportunity->id) }}"
-        class="inline-flex items-center px-4 py-2 mb-4 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
-        Edit
-        </a>
+        {{-- ACTION BUTTONS --}}
+        <div class="flex gap-3 mb-4">
+            <a href="{{ route('opportunities.edit', $opportunity->id) }}"
+               class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
+                Edit
+            </a>
+
+            <form method="POST" action="{{ route('opportunities.destroy', $opportunity->id) }}"
+                  onsubmit="return confirm('Delete this opportunity and all its products/activities?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition">
+                    Delete
+                </button>
+            </form>
+        </div>
 
 
         <div class="grid grid-cols-2 gap-8">
@@ -91,11 +125,7 @@ onkeyup="searchOpportunities()">
                         <tr>
                             <th class="px-3 py-2 border text-left">Part Number</th>
                             <th class="px-3 py-2 border text-left">Qty</th>
-                            <th class="px-3 py-2 border text-left">Unit Price</th>
-                            <th class="px-3 py-2 border text-left">MOQ</th>
-                            <th class="px-3 py-2 border text-left">MPQ</th>
-                            <th class="px-3 py-2 border text-left">Lead Time</th>
-                            <th class="px-3 py-2 border text-left">Date Code</th>
+                            <th class="px-3 py-2 border text-left">Volume</th>
                         </tr>
                     </thead>
 
@@ -115,22 +145,6 @@ onkeyup="searchOpportunities()">
 
                             <td class="px-3 py-2 border">
                                 {{ $product->unit_price }}
-                            </td>
-
-                            <td class="px-3 py-2 border">
-                                {{ $product->moq }}
-                            </td>
-
-                            <td class="px-3 py-2 border">
-                                {{ $product->mpq }}
-                            </td>
-
-                            <td class="px-3 py-2 border">
-                                {{ $product->lead_time }}
-                            </td>
-
-                            <td class="px-3 py-2 border">
-                                {{ $product->date_code }}
                             </td>
 
                         </tr>
