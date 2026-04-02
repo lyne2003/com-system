@@ -46,9 +46,16 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
-                <select name="contact_id" id="contactSelect" class="w-full border rounded p-2">
-                    <option value="">-- Select Client first --</option>
-                </select>
+                <div class="flex gap-2">
+                    <select name="contact_id" id="contactSelect" class="flex-1 border rounded p-2">
+                        <option value="">-- Select Client first --</option>
+                    </select>
+                    <button type="button" onclick="openAddContactModal()"
+                        class="shrink-0 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded border border-gray-300 transition"
+                        title="Add new contact">
+                        + New
+                    </button>
+                </div>
             </div>
 
             <div>
@@ -199,32 +206,8 @@
 
         <h3 class="text-lg font-bold mb-4 text-gray-800">Activities</h3>
 
-        <div class="overflow-x-auto">
-        <table class="w-full border text-sm">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="border p-2 text-left">Activity</th>
-                    <th class="border p-2 text-left">Date</th>
-                    <th class="border p-2 text-left">Status</th>
-                    <th class="border p-2 text-center">Action</th>
-                </tr>
-            </thead>
-            <tbody id="activitiesTable">
-                <tr class="activity-row">
-                    <td><input name="activities[0][name]" class="w-full border p-1" placeholder="e.g. Follow-up call"></td>
-                    <td><input type="date" name="activities[0][activity_date]" class="w-full border p-1"></td>
-                    <td>
-                        <select name="activities[0][status]" class="w-full border p-1">
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                        </select>
-                    </td>
-                    <td class="text-center">
-                        <button type="button" onclick="removeActivity(this)" class="text-red-500 hover:text-red-700 text-xs">Remove</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="activitiesContainer" class="space-y-4">
+            <!-- Activity rows injected here -->
         </div>
 
         <div class="mt-3">
@@ -254,6 +237,52 @@
 </div>
 </div>
 
+{{-- ADD CONTACT MODAL --}}
+<div id="addContactModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-800">Add New Contact</h3>
+            <button type="button" onclick="closeAddContactModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+        </div>
+
+        <div id="contactModalError" class="hidden mb-3 px-3 py-2 bg-red-100 text-red-700 rounded text-sm"></div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
+                <input type="text" id="nc_firstname" class="w-full border rounded p-2 text-sm" placeholder="First name">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input type="text" id="nc_lastname" class="w-full border rounded p-2 text-sm" placeholder="Last name">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title / Position</label>
+                <input type="text" id="nc_title" class="w-full border rounded p-2 text-sm" placeholder="e.g. Procurement Manager">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="nc_email" class="w-full border rounded p-2 text-sm" placeholder="email@example.com">
+            </div>
+            <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input type="text" id="nc_phone" class="w-full border rounded p-2 text-sm" placeholder="+961 1 234567">
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-5">
+            <button type="button" onclick="closeAddContactModal()"
+                class="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                Cancel
+            </button>
+            <button type="button" onclick="saveNewContact()"
+                class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                Save Contact
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('js/xlsx.full.min.js') }}"></script>
 <script>
 
@@ -278,30 +307,127 @@ function removeProduct(button) {
     button.closest('tr').remove();
 }
 
-let activityIndex = 1;
+let activityIndex = 0;
 
-function addActivity() {
-    const table = document.getElementById('activitiesTable');
-    const row = `
-    <tr class="activity-row">
-        <td><input name="activities[${activityIndex}][name]" class="w-full border p-1" placeholder="e.g. Follow-up call"></td>
-        <td><input type="date" name="activities[${activityIndex}][activity_date]" class="w-full border p-1"></td>
-        <td>
-            <select name="activities[${activityIndex}][status]" class="w-full border p-1">
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-            </select>
-        </td>
-        <td class="text-center">
-            <button type="button" onclick="removeActivity(this)" class="text-red-500 hover:text-red-700 text-xs">Remove</button>
-        </td>
-    </tr>`;
-    table.insertAdjacentHTML('beforeend', row);
+function buildActivityCard(i, data) {
+    data = data || {};
+    const type        = data.type || '';
+    const name        = data.name || '';
+    const date        = data.activity_date || '';
+    const status      = data.status || 'Pending';
+    const location    = data.location || '';
+    const attendees   = data.attendees || '';
+    const phone       = data.phone || '';
+    const duration    = data.duration || '';
+    const minutes     = data.minutes || '';
+
+    const typeOptions = ['Task','Meeting','Call'].map(t =>
+        `<option value="${t}" ${type===t?'selected':''}>${t}</option>`
+    ).join('');
+
+    const statusOptions = ['Pending','Completed'].map(s =>
+        `<option value="${s}" ${status===s?'selected':''}>${s}</option>`
+    ).join('');
+
+    return `
+    <div class="activity-card border rounded-lg p-4 bg-gray-50 relative" id="activity-card-${i}">
+        <button type="button" onclick="removeActivity(this)"
+            class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-semibold">✕ Remove</button>
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                <select name="activities[${i}][type]" class="w-full border rounded p-2 text-sm"
+                        onchange="toggleActivityFields(this, ${i})">
+                    <option value="">-- Select Type --</option>
+                    ${typeOptions}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Subject / Title</label>
+                <input type="text" name="activities[${i}][name]" value="${name}"
+                    class="w-full border rounded p-2 text-sm" placeholder="e.g. Follow-up call">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                <input type="date" name="activities[${i}][activity_date]" value="${date}"
+                    class="w-full border rounded p-2 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select name="activities[${i}][status]" class="w-full border rounded p-2 text-sm">
+                    ${statusOptions}
+                </select>
+            </div>
+
+            {{-- Meeting-specific --}}
+            <div class="activity-field-meeting-${i} hidden">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Location</label>
+                <input type="text" name="activities[${i}][location]" value="${location}"
+                    class="w-full border rounded p-2 text-sm" placeholder="e.g. Client office, Zoom">
+            </div>
+
+            <div class="activity-field-meeting-${i} hidden">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Attendees</label>
+                <input type="text" name="activities[${i}][attendees]" value="${attendees}"
+                    class="w-full border rounded p-2 text-sm" placeholder="e.g. John, Sarah">
+            </div>
+
+            {{-- Call-specific --}}
+            <div class="activity-field-call-${i} hidden">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
+                <input type="text" name="activities[${i}][phone]" value="${phone}"
+                    class="w-full border rounded p-2 text-sm" placeholder="e.g. +961 1 234567">
+            </div>
+
+            <div class="activity-field-call-${i} activity-field-meeting-${i} hidden">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Duration (minutes)</label>
+                <input type="number" name="activities[${i}][duration]" value="${duration}"
+                    class="w-full border rounded p-2 text-sm" placeholder="e.g. 30">
+            </div>
+
+            {{-- Minutes / Notes (all types) --}}
+            <div class="col-span-2">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Minutes / Notes</label>
+                <textarea name="activities[${i}][minutes]" rows="3"
+                    class="w-full border rounded p-2 text-sm"
+                    placeholder="What happened? Key points, decisions, follow-ups...">${minutes}</textarea>
+            </div>
+
+        </div>
+    </div>`;
+}
+
+function toggleActivityFields(select, i) {
+    const type = select.value;
+
+    // Hide all conditional fields for this card
+    document.querySelectorAll(`.activity-field-meeting-${i}, .activity-field-call-${i}`).forEach(el => {
+        el.classList.add('hidden');
+    });
+
+    if (type === 'Meeting') {
+        document.querySelectorAll(`.activity-field-meeting-${i}`).forEach(el => el.classList.remove('hidden'));
+    } else if (type === 'Call') {
+        document.querySelectorAll(`.activity-field-call-${i}`).forEach(el => el.classList.remove('hidden'));
+    }
+}
+
+function addActivity(data) {
+    const container = document.getElementById('activitiesContainer');
+    container.insertAdjacentHTML('beforeend', buildActivityCard(activityIndex, data));
+    // Trigger field visibility if type is pre-set
+    const sel = document.querySelector(`#activity-card-${activityIndex} select[name="activities[${activityIndex}][type]"]`);
+    if (sel && sel.value) toggleActivityFields(sel, activityIndex);
     activityIndex++;
 }
 
 function removeActivity(button) {
-    button.closest('tr').remove();
+    button.closest('.activity-card').remove();
 }
 
 function toggleClosedFields() {
@@ -349,6 +475,79 @@ document.addEventListener('DOMContentLoaded', function () {
         filterContacts(companySelect.value);
     }
 });
+
+// ---- Add Contact Modal ----
+
+function openAddContactModal() {
+    document.getElementById('addContactModal').classList.remove('hidden');
+    document.getElementById('nc_firstname').focus();
+}
+
+function closeAddContactModal() {
+    document.getElementById('addContactModal').classList.add('hidden');
+    // Clear fields
+    ['nc_firstname','nc_lastname','nc_title','nc_email','nc_phone'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('contactModalError').classList.add('hidden');
+}
+
+function saveNewContact() {
+    const companyId = document.getElementById('companySelect').value;
+    const firstname = document.getElementById('nc_firstname').value.trim();
+    const lastname  = document.getElementById('nc_lastname').value.trim();
+    const title     = document.getElementById('nc_title').value.trim();
+    const email     = document.getElementById('nc_email').value.trim();
+    const phone     = document.getElementById('nc_phone').value.trim();
+
+    const errBox = document.getElementById('contactModalError');
+
+    if (!firstname) {
+        errBox.textContent = 'First name is required.';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    errBox.classList.add('hidden');
+
+    fetch('{{ route("contacts.quickCreate") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ company_id: companyId, firstname, lastname, title, email, phone })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            errBox.textContent = data.error;
+            errBox.classList.remove('hidden');
+            return;
+        }
+
+        // Add new contact to the dropdown and select it
+        const select = document.getElementById('contactSelect');
+        const opt = document.createElement('option');
+        opt.value = data.id;
+        opt.textContent = data.firstname + ' ' + (data.lastname || '');
+        opt.selected = true;
+        select.appendChild(opt);
+
+        closeAddContactModal();
+    })
+    .catch(() => {
+        errBox.textContent = 'An error occurred. Please try again.';
+        errBox.classList.remove('hidden');
+    });
+}
+
+// Close modal on backdrop click
+document.getElementById('addContactModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddContactModal();
+});
+
+// ---- Excel Import ----
 
 function importExcelProducts(event) {
     const file = event.target.files[0];

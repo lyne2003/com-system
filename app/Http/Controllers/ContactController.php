@@ -98,6 +98,34 @@ class ContactController extends Controller
     ));
 }
 
+public function quickCreate(Request $request)
+{
+    $firstname = trim($request->input('firstname', ''));
+
+    if (empty($firstname)) {
+        return response()->json(['error' => 'First name is required.'], 422);
+    }
+
+    $id = DB::table('contacts')->insertGetId([
+        'firstname'  => $firstname,
+        'lastname'   => $request->input('lastname') ?: null,
+        'title'      => $request->input('title') ?: null,
+        'email'      => $request->input('email') ?: null,
+        'phone'      => $request->input('phone') ?: null,
+        'company_id' => $request->input('company_id') ?: null,
+        'created_at' => now(),
+        'created_by' => auth()->id(),
+    ]);
+
+    $contact = DB::table('contacts')->where('id', $id)->first();
+
+    return response()->json([
+        'id'        => $contact->id,
+        'firstname' => $contact->firstname,
+        'lastname'  => $contact->lastname,
+    ]);
+}
+
 public function update(Request $request, $id)
 {
     $request->validate([

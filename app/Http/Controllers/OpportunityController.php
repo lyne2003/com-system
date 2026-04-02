@@ -138,17 +138,23 @@ public function store(Request $request)
             foreach ($request->activities as $activity) {
 
                 // skip empty rows
-                if(empty($activity['name'])) {
+                if(empty($activity['name']) && empty($activity['type'])) {
                     continue;
                 }
 
                 DB::table('activities')->insert([
                     'opportunity_id' => $opportunity_id,
-                    'name' => $activity['name'],
-                    'activity_date' => $activity['activity_date'],
-                    'status' => $activity['status'],
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    'type'           => $activity['type'] ?? null,
+                    'name'           => $activity['name'] ?? null,
+                    'activity_date'  => $activity['activity_date'] ?? null,
+                    'status'         => $activity['status'] ?? 'Pending',
+                    'location'       => $activity['location'] ?? null,
+                    'attendees'      => $activity['attendees'] ?? null,
+                    'phone'          => $activity['phone'] ?? null,
+                    'duration'       => $activity['duration'] ?? null,
+                    'minutes'        => $activity['minutes'] ?? null,
+                    'created_at'     => now(),
+                    'updated_at'     => now()
                 ]);
             }
         }
@@ -295,15 +301,21 @@ public function update(Request $request, $id)
 
             foreach($request->activities as $activity){
 
-                if(empty($activity['name'])) continue;
+                if(empty($activity['name']) && empty($activity['type'])) continue;
 
                 DB::table('activities')->insert([
-                    'opportunity_id'=>$id,
-                    'name'=>$activity['name'],
-                    'activity_date'=>$activity['activity_date'],
-                    'status'=>$activity['status'],
-                    'created_at'=>now(),
-                    'updated_at'=>now()
+                    'opportunity_id' => $id,
+                    'type'           => $activity['type'] ?? null,
+                    'name'           => $activity['name'] ?? null,
+                    'activity_date'  => $activity['activity_date'] ?? null,
+                    'status'         => $activity['status'] ?? 'Pending',
+                    'location'       => $activity['location'] ?? null,
+                    'attendees'      => $activity['attendees'] ?? null,
+                    'phone'          => $activity['phone'] ?? null,
+                    'duration'       => $activity['duration'] ?? null,
+                    'minutes'        => $activity['minutes'] ?? null,
+                    'created_at'     => now(),
+                    'updated_at'     => now()
                 ]);
 
             }
