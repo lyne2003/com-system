@@ -32,8 +32,7 @@ COPY . .
 # Install PHP dependencies (no dev)
 RUN composer install --no-dev --optimize-autoloader
 
-# Install Node dependencies and build assets
-RUN npm install && npm run build
+# Assets are pre-built and committed to the repo, no need to rebuild
 
 # Set storage and cache permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
