@@ -33,15 +33,22 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
-                <select name="company_id" id="companySelect" class="w-full border rounded p-2"
-                        onchange="filterContacts(this.value)">
-                    <option value="">-- Select Client --</option>
-                    @foreach($companies as $company)
-                    <option value="{{ $company->id }}" @if(old('company_id') == $company->id) selected @endif>
-                        {{ $company->name }}
-                    </option>
-                    @endforeach
-                </select>
+                <div class="flex gap-2">
+                    <select name="company_id" id="companySelect" class="flex-1 border rounded p-2"
+                            onchange="filterContacts(this.value)">
+                        <option value="">-- Select Client --</option>
+                        @foreach($companies as $company)
+                        <option value="{{ $company->id }}" @if(old('company_id') == $company->id) selected @endif>
+                            {{ $company->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    <button type="button" onclick="openAddClientModal()"
+                        class="shrink-0 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded border border-gray-300 transition"
+                        title="Add new client">
+                        + New
+                    </button>
+                </div>
             </div>
 
             <div>
@@ -235,6 +242,95 @@
     </form>
 
 </div>
+</div>
+
+{{-- ADD CLIENT MODAL --}}
+<div id="addClientModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-800">Add New Client</h3>
+            <button type="button" onclick="closeAddClientModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+        </div>
+
+        <div id="clientModalError" class="hidden mb-3 px-3 py-2 bg-red-100 text-red-700 rounded text-sm"></div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company Name <span class="text-red-500">*</span></label>
+                <input type="text" id="ncl_name" class="w-full border rounded p-2 text-sm" placeholder="e.g. ACME Corporation">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="ncl_email" class="w-full border rounded p-2 text-sm" placeholder="info@company.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <input type="text" id="ncl_website" class="w-full border rounded p-2 text-sm" placeholder="www.company.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <select id="ncl_region" class="w-full border rounded p-2 text-sm" onchange="loadClientCountries(this.value)">
+                    <option value="">-- Select Region --</option>
+                    @foreach($regions as $region)
+                    <option value="{{ $region->id }}">{{ $region->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <select id="ncl_country" class="w-full border rounded p-2 text-sm">
+                    <option value="">-- Select Region first --</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                <select id="ncl_industry" class="w-full border rounded p-2 text-sm">
+                    <option value="">-- Select Industry --</option>
+                    @foreach($industries as $industry)
+                    <option value="{{ $industry->id }}">{{ $industry->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tier</label>
+                <select id="ncl_tier" class="w-full border rounded p-2 text-sm">
+                    <option value="">-- Select Tier --</option>
+                    @foreach($tiers as $tier)
+                    <option value="{{ $tier->id }}">{{ $tier->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assigned Sales</label>
+                <select id="ncl_sales" class="w-full border rounded p-2 text-sm">
+                    <option value="">-- Select --</option>
+                    @foreach($sales as $user)
+                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assigned Engineer</label>
+                <select id="ncl_engineer" class="w-full border rounded p-2 text-sm">
+                    <option value="">-- Select --</option>
+                    @foreach($engineers as $user)
+                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-5">
+            <button type="button" onclick="closeAddClientModal()"
+                class="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                Cancel
+            </button>
+            <button type="button" onclick="saveNewClient()"
+                class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                Save Client
+            </button>
+        </div>
+    </div>
 </div>
 
 {{-- ADD CONTACT MODAL --}}
@@ -474,6 +570,100 @@ document.addEventListener('DOMContentLoaded', function () {
     if (companySelect && companySelect.value) {
         filterContacts(companySelect.value);
     }
+});
+
+// ---- Add Client Modal ----
+
+function openAddClientModal() {
+    document.getElementById('addClientModal').classList.remove('hidden');
+    document.getElementById('ncl_name').focus();
+}
+
+function closeAddClientModal() {
+    document.getElementById('addClientModal').classList.add('hidden');
+    ['ncl_name','ncl_email','ncl_website'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('clientModalError').classList.add('hidden');
+}
+
+function loadClientCountries(regionId) {
+    const select = document.getElementById('ncl_country');
+    select.innerHTML = '<option value="">Loading...</option>';
+    if (!regionId) {
+        select.innerHTML = '<option value="">-- Select Region first --</option>';
+        return;
+    }
+    fetch(`/countries/by-region/${regionId}`)
+        .then(r => r.json())
+        .then(data => {
+            select.innerHTML = '<option value="">-- Select Country --</option>';
+            data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+        });
+}
+
+function saveNewClient() {
+    const name       = document.getElementById('ncl_name').value.trim();
+    const email      = document.getElementById('ncl_email').value.trim();
+    const website    = document.getElementById('ncl_website').value.trim();
+    const region_id  = document.getElementById('ncl_region').value;
+    const country_id = document.getElementById('ncl_country').value;
+    const industry_id= document.getElementById('ncl_industry').value;
+    const tier_id    = document.getElementById('ncl_tier').value;
+    const assigned_sales_id    = document.getElementById('ncl_sales').value;
+    const assigned_engineer_id = document.getElementById('ncl_engineer').value;
+    const errBox  = document.getElementById('clientModalError');
+
+    if (!name) {
+        errBox.textContent = 'Company name is required.';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    errBox.classList.add('hidden');
+
+    fetch('{{ route("companies.quickCreate") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ name, email, website, region_id, country_id, industry_id, tier_id, assigned_sales_id, assigned_engineer_id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            errBox.textContent = data.error;
+            errBox.classList.remove('hidden');
+            return;
+        }
+
+        // Add new client to the company dropdown and select it
+        const select = document.getElementById('companySelect');
+        const opt = document.createElement('option');
+        opt.value = data.id;
+        opt.textContent = data.name;
+        opt.selected = true;
+        select.appendChild(opt);
+
+        // Trigger contact filter for the new company (empty contacts)
+        filterContacts(data.id);
+
+        closeAddClientModal();
+    })
+    .catch(() => {
+        errBox.textContent = 'An error occurred. Please try again.';
+        errBox.classList.remove('hidden');
+    });
+}
+
+document.getElementById('addClientModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddClientModal();
 });
 
 // ---- Add Contact Modal ----

@@ -21,7 +21,7 @@ class MouserService
     public function search(string $partNumber, int $quantity = 1): array
     {
         try {
-            $response = Http::timeout(30)
+            $response = Http::timeout(15)
                 ->post($this->apiUrl . '?apiKey=' . $this->apiKey, [
                     'SearchByPartRequest' => [
                         'mouserPartNumber'   => $partNumber,
@@ -31,8 +31,8 @@ class MouserService
 
             if ($response->status() === 403) {
                 // Rate limit — retry once after delay
-                sleep(8);
-                $response = Http::timeout(30)
+                sleep(2);
+                $response = Http::timeout(15)
                     ->post($this->apiUrl . '?apiKey=' . $this->apiKey, [
                         'SearchByPartRequest' => [
                             'mouserPartNumber'   => $partNumber,

@@ -34,6 +34,44 @@ class CompanyController extends Controller
 
         return view('companies.index', compact('companies'));
     }
+    public function quickCreate(Request $request)
+    {
+        $name = trim($request->input('name', ''));
+
+        if (empty($name)) {
+            return response()->json(['error' => 'Company name is required.'], 422);
+        }
+
+        // Get the "Client" type id
+        $clientType = DB::table('types')->where('name', 'Client')->first();
+
+        // Get the "Active" status id
+        $activeStatus = DB::table('statuses')->where('name', 'Active')->first();
+
+        $id = DB::table('companies')->insertGetId([
+            'name'                  => $name,
+            'email'                 => $request->input('email') ?: null,
+            'website'               => $request->input('website') ?: null,
+            'region_id'             => $request->input('region_id') ?: null,
+            'country_id'            => $request->input('country_id') ?: null,
+            'industry_id'           => $request->input('industry_id') ?: null,
+            'tier_id'               => $request->input('tier_id') ?: null,
+            'assigned_sales_id'     => $request->input('assigned_sales_id') ?: null,
+            'assigned_engineer_id'  => $request->input('assigned_engineer_id') ?: null,
+            'type_id'               => $clientType ? $clientType->id : null,
+            'status_id'             => $activeStatus ? $activeStatus->id : null,
+            'created_at'            => now(),
+            'created_by'            => auth()->id(),
+        ]);
+
+        $company = DB::table('companies')->where('id', $id)->first();
+
+        return response()->json([
+            'id'   => $company->id,
+            'name' => $company->name,
+        ]);
+    }
+
     public function create()
     {
         

@@ -19,11 +19,14 @@ class TiService
 
     protected function getToken(): ?string
     {
-        if ($this->token) {
+        // Use Laravel cache to persist token across requests (expires in 55 min)
+        $cacheKey = 'ti_oauth_token_' . md5($this->clientId);
+        if ($cached = cache($cacheKey)) {
+            $this->token = $cached;
             return $this->token;
         }
 
-        $response = Http::timeout(15)
+        $response = Http::timeout(10)
             ->asForm()
             ->post('https://transact.ti.com/v1/oauth/accesstoken', [
                 'grant_type'    => 'client_credentials',
@@ -32,6 +35,9 @@ class TiService
             ]);
 
         $this->token = $response->json('access_token');
+        if ($this->token) {
+            cache([$cacheKey => $this->token], now()->addMinutes(55));
+        }
         return $this->token;
     }
 
@@ -46,7 +52,7 @@ class TiService
             $encoded = rawurlencode(trim($partNumber));
 
             // Step 1: Get product info
-            $productResponse = Http::timeout(30)
+            $productResponse = Http::timeout(15)
                 ->withHeaders(['Authorization' => 'Bearer ' . $token])
                 ->get("https://transact.ti.com/v1/products-extended/{$encoded}?page=0");
 
@@ -66,7 +72,7 @@ class TiService
             }
 
             // Step 2: Get pricing
-            $pricingResponse = Http::timeout(30)
+            $pricingResponse = Http::timeout(15)
                 ->withHeaders([
                     'Authorization' => 'Bearer ' . $token,
                     'accept'        => 'application/json',

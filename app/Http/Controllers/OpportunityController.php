@@ -68,7 +68,10 @@ public function create()
         ->get();
 
     $countries = DB::table('countries')->where('is_active', true)->orderBy('name')->get();
-    $sales = DB::table('users')->orderBy('name')->get();
+    $regions   = DB::table('regions')->where('is_active', true)->orderBy('name')->get();
+    $industries= DB::table('industries')->where('is_active', true)->orderBy('name')->get();
+    $tiers     = DB::table('tiers')->where('is_active', true)->orderBy('name')->get();
+    $sales     = DB::table('users')->orderBy('name')->get();
     $engineers = DB::table('users')->orderBy('name')->get();
 
     // All contacts (we'll filter by company via JS)
@@ -77,7 +80,7 @@ public function create()
         ->orderBy('firstname')
         ->get();
 
-    return view('opportunities.create', compact('companies', 'manufacturers', 'countries', 'sales', 'engineers', 'contacts'));
+    return view('opportunities.create', compact('companies', 'manufacturers', 'countries', 'regions', 'industries', 'tiers', 'sales', 'engineers', 'contacts'));
 }
 
 public function store(Request $request)

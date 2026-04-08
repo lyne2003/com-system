@@ -67,6 +67,9 @@ class SourcingController extends Controller
         $digikey = new DigiKeyService();
         $ti      = new TiService();
 
+        $allResults = [];
+        $now        = now();
+
         foreach ($items as $item) {
             $partNumber = trim($item->partnumber ?? '');
             $qty        = (int) ($item->qty ?? 1);
@@ -82,7 +85,7 @@ class SourcingController extends Controller
             ];
 
             foreach ($suppliers as $result) {
-                DB::table('sourcing_results')->insert([
+                $allResults[] = [
                     'id'             => \Illuminate\Support\Str::uuid(),
                     'rfq_id'         => $rfqId,
                     'item_id'        => $item->id,
@@ -102,14 +105,18 @@ class SourcingController extends Controller
                     'datasheet_url'  => $result['datasheet_url'] ?? null,
                     'category'       => $result['category'] ?? null,
                     'raw_response'   => $result['raw_response'] ?? null,
-                    'sourced_at'     => now(),
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
+                    'sourced_at'     => $now,
+                    'created_at'     => $now,
+                    'updated_at'     => $now,
+                ];
             }
+        }
 
-            // Small delay between items to avoid rate limits
-            usleep(300000); // 300ms
+        // Bulk insert all results in one query
+        if (!empty($allResults)) {
+            foreach (array_chunk($allResults, 50) as $chunk) {
+                DB::table('sourcing_results')->insert($chunk);
+            }
         }
 
         return redirect()->route('rfqs.source.show', $rfqId)

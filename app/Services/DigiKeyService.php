@@ -19,11 +19,14 @@ class DigiKeyService
 
     protected function getToken(): ?string
     {
-        if ($this->token) {
+        // Use Laravel cache to persist token across requests (expires in 55 min)
+        $cacheKey = 'digikey_oauth_token_' . md5($this->clientId);
+        if ($cached = cache($cacheKey)) {
+            $this->token = $cached;
             return $this->token;
         }
 
-        $response = Http::timeout(15)
+        $response = Http::timeout(10)
             ->asForm()
             ->post('https://api.digikey.com/v1/oauth2/token', [
                 'grant_type'    => 'client_credentials',
@@ -32,6 +35,9 @@ class DigiKeyService
             ]);
 
         $this->token = $response->json('access_token');
+        if ($this->token) {
+            cache([$cacheKey => $this->token], now()->addMinutes(55));
+        }
         return $this->token;
     }
 
@@ -46,7 +52,7 @@ class DigiKeyService
             $encoded  = rawurlencode(trim($partNumber));
             $url      = "https://api.digikey.com/products/v4/search/{$encoded}/productdetails";
 
-            $response = Http::timeout(30)
+            $response = Http::timeout(15)
                 ->withHeaders([
                     'Authorization'      => 'Bearer ' . $token,
                     'X-DIGIKEY-Client-Id'=> $this->clientId,
@@ -55,10 +61,12 @@ class DigiKeyService
                 ->get($url);
 
             if ($response->status() === 401) {
-                // Token expired — refresh and retry
+                // Token expired — clear cache, refresh and retry
+                $cacheKey = 'digikey_oauth_token_' . md5($this->clientId);
+                cache()->forget($cacheKey);
                 $this->token = null;
                 $token = $this->getToken();
-                $response = Http::timeout(30)
+                $response = Http::timeout(15)
                     ->withHeaders([
                         'Authorization'      => 'Bearer ' . $token,
                         'X-DIGIKEY-Client-Id'=> $this->clientId,
