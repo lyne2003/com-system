@@ -8,6 +8,8 @@ use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\RfqController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\SourcingController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\CountryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -62,6 +64,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/manufacturers/{id}/edit', [ManufacturerController::class, 'edit'])->name('manufacturers.edit');
     Route::post('/manufacturers/{id}/update', [ManufacturerController::class, 'update'])->name('manufacturers.update');
     Route::delete('/manufacturers/{id}', [ManufacturerController::class, 'destroy'])->name('manufacturers.destroy');
+
+    // Regions
+    Route::get('/regions', [RegionController::class, 'index'])->name('regions.index');
+    Route::post('/regions', [RegionController::class, 'store'])->name('regions.store');
+    Route::get('/regions/{id}/edit', [RegionController::class, 'edit'])->name('regions.edit');
+    Route::put('/regions/{id}', [RegionController::class, 'update'])->name('regions.update');
+    Route::delete('/regions/{id}', [RegionController::class, 'destroy'])->name('regions.destroy');
+
+    // Countries
+    Route::get('/countries', [CountryController::class, 'index'])->name('countries.index');
+    Route::post('/countries', [CountryController::class, 'store'])->name('countries.store');
+    Route::get('/countries/{id}/edit', [CountryController::class, 'edit'])->name('countries.edit');
+    Route::put('/countries/{id}', [CountryController::class, 'update'])->name('countries.update');
+    Route::delete('/countries/{id}', [CountryController::class, 'destroy'])->name('countries.destroy');
 });
 
 Route::get('/countries/by-region/{region}', [CompanyController::class, 'getCountriesByRegion']);
