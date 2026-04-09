@@ -7,9 +7,8 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libpq-dev \
     curl \
-    nodejs \
-    npm \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -26,13 +25,17 @@ RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 # Working directory
 WORKDIR /var/www/html
 
-# Copy project
+# Copy composer files first for better layer caching
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies (no dev, no scripts yet)
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+# Copy the rest of the project
 COPY . .
 
-# Install PHP dependencies (no dev)
-RUN composer install --no-dev --optimize-autoloader
-
-# Assets are pre-built and committed to the repo, no need to rebuild
+# Run composer scripts now that full project is available
+RUN composer dump-autoload --optimize
 
 # Set storage and cache permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
