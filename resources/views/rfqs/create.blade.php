@@ -42,13 +42,21 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Inquiry #</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Inquiry #
+                    <span class="text-xs text-gray-400 font-normal ml-1">(auto-assigned by region)</span>
+                </label>
                 <input
                     type="text"
                     name="inquiry_n"
+                    id="inquiryNumberField"
                     value="{{ old('inquiry_n') }}"
-                    class="w-full border rounded p-2"
-                    placeholder="e.g. INQ-001">
+                    class="w-full border rounded p-2 bg-gray-50 text-gray-700 font-mono"
+                    placeholder="Select a client first..."
+                    readonly>
+                <p id="inquiryNumberHint" class="mt-1 text-xs text-gray-400 hidden">
+                    ℹ️ <span id="inquiryNumberHintText"></span>
+                </p>
             </div>
 
             <div>
@@ -305,6 +313,46 @@ function showClientRegion(select) {
         display.classList.add('hidden');
         nameSpan.textContent = '';
     }
+
+    // Fetch inquiry number preview via AJAX
+    const clientId = select.value;
+    const inquiryField = document.getElementById('inquiryNumberField');
+    const hintEl = document.getElementById('inquiryNumberHint');
+    const hintText = document.getElementById('inquiryNumberHintText');
+
+    if (!clientId) {
+        inquiryField.value = '';
+        inquiryField.placeholder = 'Select a client first...';
+        hintEl.classList.add('hidden');
+        updateOrderCode();
+        refreshAllOverallCodes();
+        return;
+    }
+
+    inquiryField.value = '';
+    inquiryField.placeholder = 'Loading...';
+
+    fetch(`/rfqs/inquiry-number-preview?client_id=${encodeURIComponent(clientId)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.inquiry_n !== null && data.inquiry_n !== undefined) {
+                inquiryField.value = data.inquiry_n;
+                hintText.textContent = 'Preview only — final number assigned on save. Resets every Monday.';
+                hintEl.classList.remove('hidden');
+            } else {
+                inquiryField.value = '';
+                inquiryField.placeholder = 'No sequence for this region yet';
+                hintText.textContent = 'Client country not in a configured region group (Africa / GCC).';
+                hintEl.classList.remove('hidden');
+            }
+            updateOrderCode();
+            refreshAllOverallCodes();
+        })
+        .catch(() => {
+            inquiryField.value = '';
+            inquiryField.placeholder = 'Could not load preview';
+            hintEl.classList.add('hidden');
+        });
 }
 
 function updateOrderCode() {

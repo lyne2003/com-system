@@ -4,9 +4,28 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\InquiryNumberService;
 
 class RfqController extends Controller
 {
+    /**
+     * AJAX: preview the next inquiry number for a given client.
+     * Does NOT increment the counter.
+     */
+    public function inquiryNumberPreview(Request $request)
+    {
+        $clientId = $request->query('client_id');
+
+        if (!$clientId) {
+            return response()->json(['inquiry_n' => null]);
+        }
+
+        $service   = new InquiryNumberService();
+        $nextNumber = $service->peekNextNumber($clientId);
+
+        return response()->json(['inquiry_n' => $nextNumber]);
+    }
+
     public function edit($id)
     {
         $rfq = DB::table('rfqs')->where('id', $id)->first();
@@ -187,16 +206,23 @@ class RfqController extends Controller
         $request->validate([
             'reference' => 'required|string|max:255',
             'date'      => 'nullable|date',
-            'client_id' => 'nullable|uuid',
+            'client_id' => 'required|uuid',
             'priority'  => 'nullable|string|max:100',
         ]);
 
         DB::beginTransaction();
 
         try {
+            // Auto-assign inquiry number based on client's country/region
+            $inquiryNumber = null;
+            if ($request->client_id) {
+                $service = new InquiryNumberService();
+                $inquiryNumber = $service->assignNextNumber($request->client_id);
+            }
+
             $rfq_id = DB::table('rfqs')->insertGetId([
                 'reference'           => $request->reference,
-                'inquiry_n'           => $request->inquiry_n,
+                'inquiry_n'           => $inquiryNumber ?? $request->inquiry_n,
                 'date'                => $request->date,
                 'client_id'           => $request->client_id ?: null,
                 'priority'            => $request->priority,

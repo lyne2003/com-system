@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/opportunities/{id}', [OpportunityController::class, 'destroy'])->name('opportunities.destroy');
 
     Route::get('/rfqs', [RfqController::class, 'index'])->name('rfqs.index');
+    Route::get('/rfqs/inquiry-number-preview', [RfqController::class, 'inquiryNumberPreview'])->name('rfqs.inquiry_number_preview');
     Route::get('/rfqs/create', [RfqController::class, 'create'])->name('rfqs.create');
     Route::post('/rfqs', [RfqController::class, 'store'])->name('rfqs.store');
     Route::get('/rfqs/{id}/edit', [RfqController::class, 'edit'])->name('rfqs.edit');
