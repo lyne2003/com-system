@@ -33,7 +33,9 @@
 
         <div x-show="open" x-transition class="mt-4 bg-white shadow rounded-lg p-6">
             <h3 class="text-base font-bold text-gray-800 mb-4">New Rule</h3>
-            <form method="POST" action="{{ route('inquiry_rules.store') }}">
+            <form method="POST" action="{{ route('inquiry_rules.store') }}"
+                  x-data="countryPicker([], @js($allCountries->pluck('name')->toArray()))"
+                  @submit="syncHiddenInputs">
                 @csrf
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
@@ -53,22 +55,17 @@
                     </div>
                 </div>
 
-                {{-- Country multi-select with search --}}
-                <div class="mb-4" x-data="countryPicker([], @js($allCountries->pluck('name')->toArray()))">
+                {{-- Country multi-select --}}
+                <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Countries
-                        <span class="text-gray-400 font-normal">(select all that apply)</span>
+                        Countries <span class="text-gray-400 font-normal">(select all that apply)</span>
                     </label>
-
-                    {{-- Search box --}}
                     <input type="text" x-model="search" placeholder="Search countries..."
                         class="w-full border rounded p-2 text-sm mb-2">
-
-                    {{-- Dropdown list --}}
                     <div class="border rounded bg-white max-h-48 overflow-y-auto text-sm">
                         <template x-for="country in filtered" :key="country">
                             <label class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
-                                <input type="checkbox" name="countries[]" :value="country"
+                                <input type="checkbox"
                                     :checked="selected.includes(country)"
                                     @change="toggle(country)"
                                     class="rounded border-gray-300">
@@ -77,7 +74,12 @@
                         </template>
                         <div x-show="filtered.length === 0" class="px-3 py-2 text-gray-400 italic">No countries found.</div>
                     </div>
-
+                    {{-- Hidden inputs — these are what actually get submitted --}}
+                    <div id="hidden-new">
+                        <template x-for="c in selected" :key="c">
+                            <input type="hidden" name="countries[]" :value="c">
+                        </template>
+                    </div>
                     {{-- Selected tags --}}
                     <div class="flex flex-wrap gap-1 mt-2" x-show="selected.length > 0">
                         <template x-for="c in selected" :key="c">
@@ -152,9 +154,9 @@
         </div>
 
         {{-- Edit form --}}
-        <div x-show="editing" x-transition class="px-6 py-4 border-t border-gray-100 bg-gray-50"
-             x-data="countryPicker(@js($assigned), @js($allCountries->pluck('name')->toArray()))">
-            <form method="POST" action="{{ route('inquiry_rules.update', $rule->id) }}">
+        <div x-show="editing" x-transition class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <form method="POST" action="{{ route('inquiry_rules.update', $rule->id) }}"
+                  x-data="countryPicker(@js($assigned), @js($allCountries->pluck('name')->toArray()))">
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -174,14 +176,12 @@
                 {{-- Country multi-select --}}
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Countries</label>
-
                     <input type="text" x-model="search" placeholder="Search countries..."
                         class="w-full border rounded p-2 text-sm mb-2">
-
                     <div class="border rounded bg-white max-h-48 overflow-y-auto text-sm">
                         <template x-for="country in filtered" :key="country">
                             <label class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
-                                <input type="checkbox" name="countries[]" :value="country"
+                                <input type="checkbox"
                                     :checked="selected.includes(country)"
                                     @change="toggle(country)"
                                     class="rounded border-gray-300">
@@ -190,7 +190,11 @@
                         </template>
                         <div x-show="filtered.length === 0" class="px-3 py-2 text-gray-400 italic">No countries found.</div>
                     </div>
-
+                    {{-- Hidden inputs — these are what actually get submitted --}}
+                    <template x-for="c in selected" :key="c">
+                        <input type="hidden" name="countries[]" :value="c">
+                    </template>
+                    {{-- Selected tags --}}
                     <div class="flex flex-wrap gap-1 mt-2" x-show="selected.length > 0">
                         <template x-for="c in selected" :key="c">
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
