@@ -122,14 +122,14 @@ public function store(Request $request)
                 DB::table('products')->insert([
                     'opportunity_id' => $opportunity_id,
                     'part_number' => $product['part_number'],
-                    'quantity' => $product['quantity'],
-                    'unit_price' => $product['unit_price'],
-                    'moq' => $product['moq'],
-                    'mpq' => $product['mpq'],
-                    'lead_time' => $product['lead_time'],
-                    'date_code' => $product['date_code'],
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    'quantity'    => $product['quantity'] ?? null,
+                    'unit_price'  => $product['unit_price'] ?? null,
+                    'moq'         => $product['moq'] ?? null,
+                    'mpq'         => $product['mpq'] ?? null,
+                    'lead_time'   => $product['lead_time'] ?? null,
+                    'date_code'   => $product['date_code'] ?? null,
+                    'created_at'  => now(),
+                    'updated_at'  => now()
                 ]);
             }
         }
@@ -280,16 +280,16 @@ public function update(Request $request, $id)
                 if(empty($product['part_number'])) continue;
 
                 DB::table('products')->insert([
-                    'opportunity_id'=>$id,
-                    'part_number'=>$product['part_number'],
-                    'quantity'=>$product['quantity'],
-                    'unit_price'=>$product['unit_price'],
-                    'moq'=>$product['moq'],
-                    'mpq'=>$product['mpq'],
-                    'lead_time'=>$product['lead_time'],
-                    'date_code'=>$product['date_code'],
-                    'created_at'=>now(),
-                    'updated_at'=>now()
+                    'opportunity_id' => $id,
+                    'part_number'    => $product['part_number'],
+                    'quantity'       => $product['quantity'] ?? null,
+                    'unit_price'     => $product['unit_price'] ?? null,
+                    'moq'            => $product['moq'] ?? null,
+                    'mpq'            => $product['mpq'] ?? null,
+                    'lead_time'      => $product['lead_time'] ?? null,
+                    'date_code'      => $product['date_code'] ?? null,
+                    'created_at'     => now(),
+                    'updated_at'     => now()
                 ]);
 
             }
