@@ -28,7 +28,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Reference <span class="text-red-500">*</span>
+                    Reference n <span class="text-red-500">*</span>
                 </label>
                 <input
                     type="text"
