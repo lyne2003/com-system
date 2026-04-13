@@ -9,20 +9,24 @@ class CountryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DB::table('countries');
+        $query = DB::table('countries')
+            ->leftJoin('regions', 'countries.region_id', '=', 'regions.id')
+            ->select('countries.*', 'regions.name as region_name');
 
         if ($request->search) {
             $search = $request->search;
-            $query->where('name', 'ilike', "%{$search}%");
+            $query->where('countries.name', 'ilike', "%{$search}%");
         }
 
         if ($request->has('is_active') && $request->is_active !== '') {
-            $query->where('is_active', $request->is_active === '1');
+            $query->where('countries.is_active', $request->is_active === '1');
         }
 
-        $countries = $query->orderBy('name')->paginate(25);
+        $countries = $query->orderBy('countries.name')->paginate(25);
 
-        return view('countries.index', compact('countries'));
+        $regions = DB::table('regions')->where('is_active', true)->orderBy('name')->get();
+
+        return view('countries.index', compact('countries', 'regions'));
     }
 
     public function store(Request $request)
@@ -34,6 +38,7 @@ class CountryController extends Controller
         DB::table('countries')->insert([
             'id'         => \Illuminate\Support\Str::uuid(),
             'name'       => $request->name,
+            'region_id'  => $request->region_id ?: null,
             'is_active'  => true,
             'created_by' => auth()->id(),
             'created_at' => now(),
@@ -51,7 +56,9 @@ class CountryController extends Controller
             abort(404);
         }
 
-        return view('countries.edit', compact('country'));
+        $regions = DB::table('regions')->where('is_active', true)->orderBy('name')->get();
+
+        return view('countries.edit', compact('country', 'regions'));
     }
 
     public function update(Request $request, $id)
@@ -62,6 +69,7 @@ class CountryController extends Controller
 
         DB::table('countries')->where('id', $id)->update([
             'name'       => $request->name,
+            'region_id'  => $request->region_id ?: null,
             'is_active'  => $request->has('is_active') ? true : false,
             'updated_by' => auth()->id(),
             'updated_at' => now(),

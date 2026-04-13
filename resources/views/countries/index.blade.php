@@ -35,6 +35,18 @@
                 @enderror
             </div>
 
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <select name="region_id" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="">-- No Region --</option>
+                    @foreach($regions as $region)
+                    <option value="{{ $region->id }}" @if(old('region_id') == $region->id) selected @endif>
+                        {{ $region->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="flex gap-3 justify-end">
                 <button type="button"
                     onclick="document.getElementById('addModal').classList.add('hidden')"
@@ -103,6 +115,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-600">Region</th>
                     <th class="px-4 py-3 text-center font-semibold text-gray-600">Status</th>
                     <th class="px-4 py-3 text-center font-semibold text-gray-600">Actions</th>
                 </tr>
@@ -112,6 +125,9 @@
                 @forelse($countries as $country)
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium text-gray-800">{{ $country->name }}</td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {{ $country->region_name ?? '—' }}
+                    </td>
                     <td class="px-4 py-3 text-center">
                         @if($country->is_active)
                         <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Active</span>
@@ -135,7 +151,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="3" class="px-4 py-8 text-center text-gray-400">
+                    <td colspan="4" class="px-4 py-8 text-center text-gray-400">
                         No countries found.
                         <button onclick="document.getElementById('addModal').classList.remove('hidden')"
                             class="text-blue-600 hover:underline">Add the first one</button>.

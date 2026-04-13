@@ -29,6 +29,19 @@
                 @enderror
             </div>
 
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <select name="region_id" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="">-- No Region --</option>
+                    @foreach($regions as $region)
+                    <option value="{{ $region->id }}"
+                        @if(old('region_id', $country->region_id) == $region->id) selected @endif>
+                        {{ $region->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="mb-6">
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="is_active" value="1"
