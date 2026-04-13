@@ -13,15 +13,18 @@ class InquiryRuleController extends Controller
             ->orderBy('group_name')
             ->get();
 
-        // Load countries for each rule
+        // Load countries assigned to each rule
         $ruleIds = $rules->pluck('id')->toArray();
-        $countries = DB::table('inquiry_rule_countries')
+        $ruleCountries = DB::table('inquiry_rule_countries')
             ->whereIn('inquiry_rule_id', $ruleIds)
             ->orderBy('country_name')
             ->get()
             ->groupBy('inquiry_rule_id');
 
-        return view('inquiry_rules.index', compact('rules', 'countries'));
+        // All available countries (from the countries table)
+        $allCountries = DB::table('countries')->orderBy('name')->get();
+
+        return view('inquiry_rules.index', compact('rules', 'ruleCountries', 'allCountries'));
     }
 
     public function store(Request $request)
@@ -39,13 +42,13 @@ class InquiryRuleController extends Controller
             'updated_at'  => now(),
         ]);
 
-        // Insert countries
-        $countries = array_filter(array_map('trim', explode("\n", $request->countries ?? '')));
-        foreach ($countries as $country) {
-            if (!empty($country)) {
+        // Insert selected countries (array of country names)
+        foreach ((array) ($request->countries ?? []) as $countryName) {
+            $countryName = trim($countryName);
+            if (!empty($countryName)) {
                 DB::table('inquiry_rule_countries')->insert([
                     'inquiry_rule_id' => $id,
-                    'country_name'    => $country,
+                    'country_name'    => $countryName,
                     'created_at'      => now(),
                     'updated_at'      => now(),
                 ]);
@@ -73,12 +76,12 @@ class InquiryRuleController extends Controller
         // Replace countries
         DB::table('inquiry_rule_countries')->where('inquiry_rule_id', $id)->delete();
 
-        $countries = array_filter(array_map('trim', explode("\n", $request->countries ?? '')));
-        foreach ($countries as $country) {
-            if (!empty($country)) {
+        foreach ((array) ($request->countries ?? []) as $countryName) {
+            $countryName = trim($countryName);
+            if (!empty($countryName)) {
                 DB::table('inquiry_rule_countries')->insert([
                     'inquiry_rule_id' => $id,
-                    'country_name'    => $country,
+                    'country_name'    => $countryName,
                     'created_at'      => now(),
                     'updated_at'      => now(),
                 ]);
