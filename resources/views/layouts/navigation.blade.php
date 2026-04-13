@@ -36,6 +36,14 @@
                         {{ __('Manufacturers') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('regions.index')" :active="request()->routeIs('regions.*')">
+                        {{ __('Regions') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('countries.index')" :active="request()->routeIs('countries.*')">
+                        {{ __('Countries') }}
+                    </x-nav-link>
+
                     <x-nav-link :href="route('inquiry_rules.index')" :active="request()->routeIs('inquiry_rules.*')">
                         {{ __('Inquiry Rules') }}
                     </x-nav-link>
