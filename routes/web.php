@@ -10,6 +10,7 @@ use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\SourcingController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\CountryController;
+use App\Http\Controllers\InquiryRuleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -79,6 +80,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/countries/{id}/edit', [CountryController::class, 'edit'])->name('countries.edit');
     Route::put('/countries/{id}', [CountryController::class, 'update'])->name('countries.update');
     Route::delete('/countries/{id}', [CountryController::class, 'destroy'])->name('countries.destroy');
+
+    // Inquiry Number Rules
+    Route::get('/inquiry-rules', [InquiryRuleController::class, 'index'])->name('inquiry_rules.index');
+    Route::post('/inquiry-rules', [InquiryRuleController::class, 'store'])->name('inquiry_rules.store');
+    Route::put('/inquiry-rules/{id}', [InquiryRuleController::class, 'update'])->name('inquiry_rules.update');
+    Route::delete('/inquiry-rules/{id}', [InquiryRuleController::class, 'destroy'])->name('inquiry_rules.destroy');
 });
 
 Route::get('/countries/by-region/{region}', [CompanyController::class, 'getCountriesByRegion']);

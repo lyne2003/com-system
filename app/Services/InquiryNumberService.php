@@ -8,23 +8,6 @@ use Carbon\Carbon;
 class InquiryNumberService
 {
     /**
-     * Countries mapped to region groups (case-insensitive matching).
-     */
-    protected array $countryGroups = [
-        'africa' => ['egypt', 'tunisia', 'algeria'],
-        'gcc'    => ['united arab emirates', 'uae', 'kuwait', 'qatar', 'oman', 'bahrain'],
-    ];
-
-    /**
-     * Base (starting) number for each region group.
-     * The sequence resets to base+1 every Monday.
-     */
-    protected array $baseNumbers = [
-        'africa' => 10000,
-        'gcc'    => 20000,
-    ];
-
-    /**
      * Get the Monday date of the current week (as a date string YYYY-MM-DD).
      */
     public function currentWeekStart(): string
@@ -33,10 +16,39 @@ class InquiryNumberService
     }
 
     /**
-     * Determine the region group for a given company ID.
-     * Returns 'africa', 'gcc', or null if not matched.
+     * Load all active rules from the DB.
+     * Returns a collection of rules, each with a ->countries array (lowercase).
      */
-    public function getRegionGroup(string|int $companyId): ?string
+    protected function loadRules(): \Illuminate\Support\Collection
+    {
+        $rules = DB::table('inquiry_rules')
+            ->where('is_active', true)
+            ->get();
+
+        if ($rules->isEmpty()) {
+            return collect();
+        }
+
+        $ruleIds = $rules->pluck('id')->toArray();
+        $countryRows = DB::table('inquiry_rule_countries')
+            ->whereIn('inquiry_rule_id', $ruleIds)
+            ->get()
+            ->groupBy('inquiry_rule_id');
+
+        return $rules->map(function ($rule) use ($countryRows) {
+            $rule->countries = ($countryRows[$rule->id] ?? collect())
+                ->pluck('country_name')
+                ->map(fn($c) => strtolower(trim($c)))
+                ->toArray();
+            return $rule;
+        });
+    }
+
+    /**
+     * Determine the matching rule for a given company ID.
+     * Returns the rule object or null if no match.
+     */
+    public function getRuleForCompany(string|int $companyId): ?object
     {
         $company = DB::table('companies')
             ->leftJoin('countries', 'companies.country_id', '=', 'countries.id')
@@ -49,10 +61,11 @@ class InquiryNumberService
         }
 
         $countryLower = strtolower(trim($company->country_name));
+        $rules = $this->loadRules();
 
-        foreach ($this->countryGroups as $group => $countries) {
-            if (in_array($countryLower, $countries, true)) {
-                return $group;
+        foreach ($rules as $rule) {
+            if (in_array($countryLower, $rule->countries, true)) {
+                return $rule;
             }
         }
 
@@ -61,20 +74,20 @@ class InquiryNumberService
 
     /**
      * Peek at the next inquiry number for a company (without incrementing).
-     * Returns null if the company's country is not in a known region group.
+     * Returns null if no rule matches.
      */
     public function peekNextNumber(string|int $companyId): ?int
     {
-        $group = $this->getRegionGroup($companyId);
-        if (!$group) {
+        $rule = $this->getRuleForCompany($companyId);
+        if (!$rule) {
             return null;
         }
 
         $weekStart = $this->currentWeekStart();
-        $base      = $this->baseNumbers[$group];
+        $base      = $rule->base_number;
 
         $row = DB::table('inquiry_sequences')
-            ->where('region_group', $group)
+            ->where('region_group', $rule->group_name)
             ->where('week_start', $weekStart)
             ->first();
 
@@ -83,19 +96,19 @@ class InquiryNumberService
 
     /**
      * Atomically assign and return the next inquiry number for a company.
-     * Increments the counter in the DB. Returns null if region not matched.
+     * Increments the counter in the DB. Returns null if no rule matches.
      */
     public function assignNextNumber(string|int $companyId): ?int
     {
-        $group = $this->getRegionGroup($companyId);
-        if (!$group) {
+        $rule = $this->getRuleForCompany($companyId);
+        if (!$rule) {
             return null;
         }
 
         $weekStart = $this->currentWeekStart();
-        $base      = $this->baseNumbers[$group];
+        $base      = $rule->base_number;
+        $group     = $rule->group_name;
 
-        // Use a DB transaction + lock to prevent race conditions
         return DB::transaction(function () use ($group, $weekStart, $base) {
             $row = DB::table('inquiry_sequences')
                 ->where('region_group', $group)

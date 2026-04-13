@@ -35,6 +35,10 @@
                     <x-nav-link :href="route('manufacturers.index')" :active="request()->routeIs('manufacturers.*')">
                         {{ __('Manufacturers') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('inquiry_rules.index')" :active="request()->routeIs('inquiry_rules.*')">
+                        {{ __('Inquiry Rules') }}
+                    </x-nav-link>
                 </div>
             </div>
 
