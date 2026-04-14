@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\InquiryNumberService;
+use App\Jobs\SourcingJob;
 
 class RfqController extends Controller
 {
@@ -260,8 +261,23 @@ class RfqController extends Controller
 
             DB::commit();
 
-            // Trigger sourcing automatically
-            return redirect()->route('rfqs.source.run', $rfq_id);
+            // Dispatch sourcing jobs in background and redirect to source page
+            $items = DB::table('items')->where('rfq_id', $rfq_id)->get();
+            $totalItems = $items->count();
+
+            if ($totalItems > 0) {
+                DB::table('rfqs')->where('id', $rfq_id)->update([
+                    'sourcing_status' => 'processing',
+                    'updated_at'      => now(),
+                ]);
+
+                foreach ($items as $item) {
+                    SourcingJob::dispatch($rfq_id, $item, $totalItems);
+                }
+            }
+
+            return redirect()->route('rfqs.source.show', $rfq_id)
+                ->with('info', 'Sourcing started in the background. Results will appear as they come in.');
 
         } catch (\Exception $e) {
             DB::rollback();
