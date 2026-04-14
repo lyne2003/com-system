@@ -36,9 +36,6 @@
                     <th class="px-4 py-3 text-left">Date</th>
                     <th class="px-4 py-3 text-left">Part Number</th>
                     <th class="px-4 py-3 text-left">Mouser Part Number</th>
-                    <th class="px-4 py-3 text-left">Mouser Price</th>
-                    <th class="px-4 py-3 text-left">Stock</th>
-                    <th class="px-4 py-3 text-left">Status</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -59,37 +56,10 @@
                 <td class="px-4 py-3 font-mono text-xs text-gray-700">
                     {{ $row->mouser_part_number ?? '—' }}
                 </td>
-                <td class="px-4 py-3 font-mono font-semibold text-gray-800">
-                    @if($row->mouser_price !== null)
-                        ${{ number_format($row->mouser_price, 4) }}
-                    @else
-                        <span class="text-gray-400">—</span>
-                    @endif
-                </td>
-                <td class="px-4 py-3 text-gray-600">
-                    @if($row->mouser_stock !== null)
-                        {{ number_format($row->mouser_stock) }}
-                    @else
-                        <span class="text-gray-400">—</span>
-                    @endif
-                </td>
-                <td class="px-4 py-3">
-                    @if(!$row->mouser_status)
-                        <span class="text-gray-400 text-xs">Not sourced</span>
-                    @elseif($row->mouser_status === 'found')
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">✅ Found</span>
-                    @elseif($row->mouser_status === 'no_stock')
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">⚠️ No Stock</span>
-                    @elseif($row->mouser_status === 'not_found')
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">❌ Not Found</span>
-                    @else
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">{{ ucfirst($row->mouser_status) }}</span>
-                    @endif
-                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="8" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="5" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>
