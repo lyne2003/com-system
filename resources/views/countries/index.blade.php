@@ -36,15 +36,19 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                <select name="region_id" class="w-full border rounded px-3 py-2 text-sm">
-                    <option value="">-- No Region --</option>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Regions <span class="text-gray-400 font-normal text-xs">(select all that apply)</span>
+                </label>
+                <div class="border rounded bg-white max-h-36 overflow-y-auto text-sm p-2 space-y-1">
                     @foreach($regions as $region)
-                    <option value="{{ $region->id }}" @if(old('region_id') == $region->id) selected @endif>
-                        {{ $region->name }}
-                    </option>
+                    <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                        <input type="checkbox" name="region_ids[]" value="{{ $region->id }}"
+                            @if(is_array(old('region_ids')) && in_array($region->id, old('region_ids'))) checked @endif
+                            class="rounded border-gray-300">
+                        <span>{{ $region->name }}</span>
+                    </label>
                     @endforeach
-                </select>
+                </div>
             </div>
 
             <div class="flex gap-3 justify-end">
@@ -115,7 +119,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-600">Region</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-600">Regions</th>
                     <th class="px-4 py-3 text-center font-semibold text-gray-600">Status</th>
                     <th class="px-4 py-3 text-center font-semibold text-gray-600">Actions</th>
                 </tr>
@@ -125,8 +129,14 @@
                 @forelse($countries as $country)
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium text-gray-800">{{ $country->name }}</td>
-                    <td class="px-4 py-3 text-gray-600">
-                        {{ $country->region_name ?? '—' }}
+                    <td class="px-4 py-3 text-gray-600 text-xs">
+                        @if($country->region_names)
+                            @foreach(explode(', ', $country->region_names) as $rn)
+                            <span class="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full mr-1 mb-0.5">{{ $rn }}</span>
+                            @endforeach
+                        @else
+                            <span class="text-gray-400">—</span>
+                        @endif
                     </td>
                     <td class="px-4 py-3 text-center">
                         @if($country->is_active)

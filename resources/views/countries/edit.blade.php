@@ -30,16 +30,19 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                <select name="region_id" class="w-full border rounded px-3 py-2 text-sm">
-                    <option value="">-- No Region --</option>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Regions <span class="text-gray-400 font-normal text-xs">(select all that apply)</span>
+                </label>
+                <div class="border rounded bg-white max-h-48 overflow-y-auto text-sm p-2 space-y-1">
                     @foreach($regions as $region)
-                    <option value="{{ $region->id }}"
-                        @if(old('region_id', $country->region_id) == $region->id) selected @endif>
-                        {{ $region->name }}
-                    </option>
+                    <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                        <input type="checkbox" name="region_ids[]" value="{{ $region->id }}"
+                            @if(in_array($region->id, old('region_ids', $assignedRegionIds))) checked @endif
+                            class="rounded border-gray-300">
+                        <span>{{ $region->name }}</span>
+                    </label>
                     @endforeach
-                </select>
+                </div>
             </div>
 
             <div class="mb-6">
