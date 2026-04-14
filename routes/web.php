@@ -11,6 +11,7 @@ use App\Http\Controllers\SourcingController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\InquiryRuleController;
+use App\Http\Controllers\PurchasingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,6 +84,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/countries/{id}/edit', [CountryController::class, 'edit'])->name('countries.edit');
     Route::put('/countries/{id}', [CountryController::class, 'update'])->name('countries.update');
     Route::delete('/countries/{id}', [CountryController::class, 'destroy'])->name('countries.destroy');
+
+    // Purchasing
+    Route::get('/purchasing', [PurchasingController::class, 'index'])->name('purchasing.index');
 
     // Inquiry Number Rules
     Route::get('/inquiry-rules', [InquiryRuleController::class, 'index'])->name('inquiry_rules.index');
