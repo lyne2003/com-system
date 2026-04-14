@@ -45,7 +45,11 @@
                     {{ $row->overallcode ?? '—' }}
                 </td>
                 <td class="px-4 py-3 font-semibold text-gray-800">
-                    {{ $row->order_code ?? '—' }}
+                    @if($row->date && $row->order_code)
+                        {{ \Carbon\Carbon::parse($row->date)->format('Ymd') }}-{{ $row->order_code }}
+                    @else
+                        {{ $row->order_code ?? '—' }}
+                    @endif
                 </td>
                 <td class="px-4 py-3 text-gray-600">
                     {{ $row->date ? \Carbon\Carbon::parse($row->date)->format('d M Y') : '—' }}
