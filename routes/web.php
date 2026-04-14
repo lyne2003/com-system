@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/contacts/quick-create', [ContactController::class, 'quickCreate'])->name('contacts.quickCreate');
     Route::get('/contacts/{id}/edit', [ContactController::class, 'edit'])->name('contacts.edit');
     Route::put('/contacts/{id}', [ContactController::class, 'update'])->name('contacts.update');
+    Route::delete('/contacts/{id}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
     Route::get('/opportunities', [OpportunityController::class, 'index'])->name('opportunities.index');
     Route::get('/opportunities/create', [OpportunityController::class, 'create'])->name('opportunities.create');

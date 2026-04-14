@@ -110,11 +110,18 @@ Reset
 {{ \Carbon\Carbon::parse($contact->created_at)->format('d M Y') }}
 </td>
 
-<td class="px-4 py-2">
-<a href="{{ route('contacts.edit',$contact->id) }}"
-class="text-blue-600">
-Edit
-</a>
+<td class="px-4 py-2 whitespace-nowrap">
+<div class="flex items-center gap-3">
+    <a href="{{ route('contacts.edit', $contact->id) }}"
+       class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded">Edit</a>
+
+    <form method="POST" action="{{ route('contacts.destroy', $contact->id) }}"
+          onsubmit="return confirm('Delete this contact?')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="inline-flex items-center px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded">Delete</button>
+    </form>
+</div>
 </td>
 
 </tr>

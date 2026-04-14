@@ -155,4 +155,12 @@ public function update(Request $request, $id)
     return redirect()->route('contacts.index')
         ->with('success', 'Contact updated successfully.');
 }
+
+    public function destroy($id)
+    {
+        DB::table('contacts')->where('id', $id)->delete();
+
+        return redirect()->route('contacts.index')
+            ->with('success', 'Contact deleted successfully.');
+    }
 }
