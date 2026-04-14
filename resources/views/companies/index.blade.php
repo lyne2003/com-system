@@ -63,51 +63,52 @@ Reset
 
 <!-- TABLE -->
 
-<table class="min-w-full divide-y divide-gray-200" id="companiesTable">
+<div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200 text-sm" id="companiesTable">
 
-<thead>
+<thead class="bg-gray-50">
 <tr>
-<th class="px-4 py-2 text-left">Name</th>
-<th class="px-4 py-2 text-left">Email</th>
-<th class="px-4 py-2 text-left">Website</th>
-<th class="px-4 py-2 text-left">Country</th>
-<th class="px-4 py-2 text-left">Region</th>
-<th class="px-4 py-2 text-left">Type</th>
-<th class="px-4 py-2 text-left">Industry</th>
-<th class="px-4 py-2 text-left">Tier</th>
-<th class="px-4 py-2 text-left">Assigned Sales</th>
-<th class="px-4 py-2 text-left">Assigned Engineer</th>
-<th class="px-4 py-2">Actions</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Name</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Email</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Website</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Country</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Region</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Type</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Industry</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Tier</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Assigned Sales</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Assigned Engineer</th>
+<th class="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">Actions</th>
 </tr>
 </thead>
 
-<tbody class="divide-y divide-gray-200">
+<tbody class="divide-y divide-gray-100">
 
 @forelse($companies as $company)
 
-<tr>
+<tr class="hover:bg-gray-50">
 
-<td class="px-4 py-2">{{ $company->name }}</td>
-<td class="px-4 py-2">{{ $company->email }}</td>
-<td class="px-4 py-2">{{ $company->website }}</td>
-<td class="px-4 py-2">{{ $company->country_name }}</td>
-<td class="px-4 py-2">{{ $company->region_name }}</td>
-<td class="px-4 py-2 type">{{ $company->type_name }}</td>
-<td class="px-4 py-2">{{ $company->industry_name }}</td>
-<td class="px-4 py-2 tier">{{ $company->tier_name }}</td>
-<td class="px-4 py-2 sales">{{ $company->assigned_sales_name }}</td>
-<td class="px-4 py-2 engineer">{{ $company->assigned_engineer_name }}</td>
+<td class="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{{ $company->name }}</td>
+<td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $company->email }}</td>
+<td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $company->website }}</td>
+<td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $company->country_name }}</td>
+<td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $company->region_name }}</td>
+<td class="px-4 py-3 type whitespace-nowrap">{{ $company->type_name }}</td>
+<td class="px-4 py-3 text-gray-600">{{ $company->industry_name }}</td>
+<td class="px-4 py-3 tier whitespace-nowrap">{{ $company->tier_name }}</td>
+<td class="px-4 py-3 sales whitespace-nowrap">{{ $company->assigned_sales_name }}</td>
+<td class="px-4 py-3 engineer whitespace-nowrap">{{ $company->assigned_engineer_name }}</td>
 
-<td class="px-4 py-2">
+<td class="px-4 py-3 whitespace-nowrap">
 <div class="flex items-center gap-3">
     <a href="{{ route('companies.edit', $company->id) }}"
-       class="text-blue-600 hover:text-blue-800 font-medium">Edit</a>
+       class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded">Edit</a>
 
     <form method="POST" action="{{ route('companies.destroy', $company->id) }}"
           onsubmit="return confirm('Delete this account?')">
         @csrf
         @method('DELETE')
-        <button type="submit" class="text-red-500 hover:text-red-700 font-medium">Delete</button>
+        <button type="submit" class="inline-flex items-center px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded">Delete</button>
     </form>
 </div>
 </td>
