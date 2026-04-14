@@ -99,10 +99,17 @@ Reset
 <td class="px-4 py-2 engineer">{{ $company->assigned_engineer_name }}</td>
 
 <td class="px-4 py-2">
-<a href="{{ route('companies.edit', $company->id) }}"
-class="text-blue-600">
-Edit
-</a>
+<div class="flex items-center gap-3">
+    <a href="{{ route('companies.edit', $company->id) }}"
+       class="text-blue-600 hover:text-blue-800 font-medium">Edit</a>
+
+    <form method="POST" action="{{ route('companies.destroy', $company->id) }}"
+          onsubmit="return confirm('Delete this account?')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="text-red-500 hover:text-red-700 font-medium">Delete</button>
+    </form>
+</div>
 </td>
 
 </tr>

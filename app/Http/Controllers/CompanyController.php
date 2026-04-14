@@ -265,4 +265,12 @@ class CompanyController extends Controller
         return redirect()->route('companies.index')
             ->with('success', 'Company updated successfully.');
     }
+
+    public function destroy($id)
+    {
+        DB::table('companies')->where('id', $id)->delete();
+
+        return redirect()->route('companies.index')
+            ->with('success', 'Account deleted successfully.');
+    }
 }

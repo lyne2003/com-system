@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/companies/quick-create', [CompanyController::class, 'quickCreate'])->name('companies.quickCreate');
     Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
     Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('companies.destroy');
 
 
     Route::get('/contacts', [ContactController::class, 'index'])->name('contacts.index');
