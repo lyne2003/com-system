@@ -40,6 +40,7 @@ class PurchasingController extends Controller
                 DB::raw("COALESCE(sr_mouser.category, sr_digikey.category, sr_ti.category) as best_category")
             )
             ->orderBy('rfqs.date', 'desc')
+            ->orderBy('rfqs.created_at', 'desc')
             ->orderBy('items.line_number');
 
         // Search filter
