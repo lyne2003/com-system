@@ -13,5 +13,8 @@ php artisan cache:clear
 php artisan view:clear
 php artisan route:clear
 
+# Start queue worker in background (processes sourcing jobs)
+php artisan queue:work --sleep=3 --tries=3 --max-time=3600 &
+
 # Start Apache in foreground
 apache2-foreground

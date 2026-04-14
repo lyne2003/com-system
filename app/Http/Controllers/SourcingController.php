@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\MouserService;
-use App\Services\DigiKeyService;
-use App\Services\TiService;
+use App\Jobs\SourcingJob;
 
 class SourcingController extends Controller
 {
@@ -41,7 +39,31 @@ class SourcingController extends Controller
     }
 
     /**
-     * Trigger sourcing for all items in an RFQ (called after store).
+     * AJAX: return current sourcing status + progress counts.
+     */
+    public function status($rfqId)
+    {
+        $rfq = DB::table('rfqs')->where('id', $rfqId)->first();
+        if (!$rfq) {
+            return response()->json(['status' => 'not_found'], 404);
+        }
+
+        $totalItems = DB::table('items')->where('rfq_id', $rfqId)->count();
+        $sourcedItems = DB::table('sourcing_results')
+            ->where('rfq_id', $rfqId)
+            ->distinct('item_id')
+            ->count('item_id');
+
+        return response()->json([
+            'status'        => $rfq->sourcing_status ?? 'idle',
+            'total'         => $totalItems,
+            'sourced'       => $sourcedItems,
+            'percent'       => $totalItems > 0 ? round(($sourcedItems / $totalItems) * 100) : 0,
+        ]);
+    }
+
+    /**
+     * Dispatch sourcing jobs for all items in an RFQ.
      */
     public function run($rfqId)
     {
@@ -63,63 +85,20 @@ class SourcingController extends Controller
         // Delete old results for this RFQ
         DB::table('sourcing_results')->where('rfq_id', $rfqId)->delete();
 
-        $mouser  = new MouserService();
-        $digikey = new DigiKeyService();
-        $ti      = new TiService();
+        // Mark as processing
+        DB::table('rfqs')->where('id', $rfqId)->update([
+            'sourcing_status' => 'processing',
+            'updated_at'      => now(),
+        ]);
 
-        $allResults = [];
-        $now        = now();
+        $totalItems = $items->count();
 
+        // Dispatch one job per item
         foreach ($items as $item) {
-            $partNumber = trim($item->partnumber ?? '');
-            $qty        = (int) ($item->qty ?? 1);
-
-            if (empty($partNumber)) {
-                continue;
-            }
-
-            $suppliers = [
-                $mouser->search($partNumber, $qty),
-                $digikey->search($partNumber, $qty),
-                $ti->search($partNumber, $qty),
-            ];
-
-            foreach ($suppliers as $result) {
-                $allResults[] = [
-                    'id'             => \Illuminate\Support\Str::uuid(),
-                    'rfq_id'         => $rfqId,
-                    'item_id'        => $item->id,
-                    'partnumber'     => $partNumber,
-                    'supplier'       => $result['supplier'] ?? 'unknown',
-                    'status'         => $result['status'] ?? 'error',
-                    'description'    => $result['description'] ?? null,
-                    'manufacturer'   => $result['manufacturer'] ?? null,
-                    'manufacturer_pn'=> $result['manufacturer_pn'] ?? null,
-                    'unit_price'     => $result['unit_price'] ?? null,
-                    'availability'   => $result['availability'] ?? null,
-                    'stock_status'   => $result['stock_status'] ?? null,
-                    'lead_time'      => $result['lead_time'] ?? null,
-                    'moq'            => $result['moq'] ?? null,
-                    'package_type'   => $result['package_type'] ?? null,
-                    'package_qty'    => $result['package_qty'] ?? null,
-                    'datasheet_url'  => $result['datasheet_url'] ?? null,
-                    'category'       => $result['category'] ?? null,
-                    'raw_response'   => $result['raw_response'] ?? null,
-                    'sourced_at'     => $now,
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
-                ];
-            }
-        }
-
-        // Bulk insert all results in one query
-        if (!empty($allResults)) {
-            foreach (array_chunk($allResults, 50) as $chunk) {
-                DB::table('sourcing_results')->insert($chunk);
-            }
+            SourcingJob::dispatch($rfqId, $item, $totalItems);
         }
 
         return redirect()->route('rfqs.source.show', $rfqId)
-            ->with('success', 'Sourcing completed for all items.');
+            ->with('info', 'Sourcing started in the background. Results will appear as they come in.');
     }
 }

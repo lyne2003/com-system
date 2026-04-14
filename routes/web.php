@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
     // Sourcing
     Route::get('/rfqs/{id}/source', [SourcingController::class, 'show'])->name('rfqs.source.show');
     Route::post('/rfqs/{id}/source/run', [SourcingController::class, 'run'])->name('rfqs.source.run');
+    Route::get('/rfqs/{id}/sourcing-status', [SourcingController::class, 'status'])->name('rfqs.source.status');
 
     Route::get('/manufacturers', [ManufacturerController::class, 'index'])->name('manufacturers.index');
     Route::get('/manufacturers/create', [ManufacturerController::class, 'create'])->name('manufacturers.create');

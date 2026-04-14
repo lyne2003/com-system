@@ -40,12 +40,39 @@
     <div class="mb-4 px-4 py-3 bg-blue-100 text-blue-800 rounded-lg">{{ session('info') }}</div>
     @endif
 
+    {{-- ===== PROGRESS BAR (shown while processing) ===== --}}
+    @php $sourcingStatus = $rfq->sourcing_status ?? 'idle'; @endphp
+
+    @if($sourcingStatus === 'processing')
+    <div id="progressSection" class="mb-6 bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h3 class="font-semibold text-gray-800 text-lg">⏳ Sourcing in progress…</h3>
+                <p class="text-sm text-gray-500 mt-1">Results are being fetched from Mouser, Digi-Key and TI in the background. This page updates automatically.</p>
+            </div>
+            <span id="progressPercent" class="text-2xl font-bold text-blue-600">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div id="progressBar" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2" id="progressLabel">Checking…</p>
+    </div>
+    @endif
+
+    @if($sourcingStatus === 'failed')
+    <div class="mb-4 px-4 py-3 bg-red-100 text-red-800 rounded-lg">
+        ❌ Sourcing failed for one or more items. You can re-run sourcing using the button above.
+    </div>
+    @endif
+
+    {{-- ===== ITEMS TABLE ===== --}}
     @if($items->isEmpty())
     <div class="bg-white shadow rounded-lg p-8 text-center text-gray-500">
         No items in this RFQ.
     </div>
     @else
 
+    <div id="resultsContainer">
     @foreach($items as $item)
     @php
         $itemResults = $results[$item->id] ?? collect();
@@ -105,7 +132,7 @@
 
                 <td class="px-4 py-3">
                     @if(!$r)
-                        <span class="text-gray-400 text-xs">Not sourced</span>
+                        <span class="text-gray-400 text-xs">Pending…</span>
                     @elseif($r->status === 'found')
                         <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">✅ Found</span>
                     @elseif($r->status === 'no_stock')
@@ -191,10 +218,45 @@
 
     </div>
     @endforeach
+    </div>
 
     @endif
 
 </div>
 </div>
+
+@if(($rfq->sourcing_status ?? 'idle') === 'processing')
+<script>
+(function() {
+    const rfqId   = '{{ $rfq->id }}';
+    const statusUrl = '/rfqs/' + rfqId + '/sourcing-status';
+    let pollInterval;
+
+    function poll() {
+        fetch(statusUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                const pct   = data.percent || 0;
+                const label = data.sourced + ' / ' + data.total + ' items sourced';
+
+                document.getElementById('progressBar').style.width    = pct + '%';
+                document.getElementById('progressPercent').textContent = pct + '%';
+                document.getElementById('progressLabel').textContent   = label;
+
+                if (data.status === 'completed' || data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    // Reload the page to show all results
+                    window.location.reload();
+                }
+            })
+            .catch(() => {}); // silently ignore network errors
+    }
+
+    // Poll every 4 seconds
+    poll();
+    pollInterval = setInterval(poll, 4000);
+})();
+</script>
+@endif
 
 </x-app-layout>
