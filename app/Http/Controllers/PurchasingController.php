@@ -4,27 +4,40 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\SupplierRecommendationService;
 
 class PurchasingController extends Controller
 {
     public function index(Request $request)
     {
-        // Join items → rfqs → sourcing_results (mouser only)
+        // Join items → rfqs → sourcing_results (mouser first, then digikey, then ti)
+        // We need manufacturer + category from the best available supplier
         $query = DB::table('items')
             ->join('rfqs', 'items.rfq_id', '=', 'rfqs.id')
-            ->leftJoin('sourcing_results', function ($join) {
-                $join->on('sourcing_results.item_id', '=', 'items.id')
-                     ->where('sourcing_results.supplier', '=', 'mouser');
+            ->leftJoin('sourcing_results as sr_mouser', function ($join) {
+                $join->on('sr_mouser.item_id', '=', 'items.id')
+                     ->where('sr_mouser.supplier', '=', 'mouser');
+            })
+            ->leftJoin('sourcing_results as sr_digikey', function ($join) {
+                $join->on('sr_digikey.item_id', '=', 'items.id')
+                     ->where('sr_digikey.supplier', '=', 'digikey');
+            })
+            ->leftJoin('sourcing_results as sr_ti', function ($join) {
+                $join->on('sr_ti.item_id', '=', 'items.id')
+                     ->where('sr_ti.supplier', '=', 'ti');
             })
             ->select(
+                'items.id as item_id',
                 'items.overallcode',
                 'rfqs.inquiry_n as order_code',
                 'rfqs.date',
                 'items.partnumber',
-                'sourcing_results.manufacturer_pn as mouser_part_number',
-                'sourcing_results.unit_price as mouser_price',
-                'sourcing_results.availability as mouser_stock',
-                'sourcing_results.status as mouser_status'
+                // Mouser part number
+                'sr_mouser.manufacturer_pn as mouser_part_number',
+                // Best manufacturer: mouser → digikey → ti
+                DB::raw("COALESCE(sr_mouser.manufacturer, sr_digikey.manufacturer, sr_ti.manufacturer) as best_manufacturer"),
+                // Best category: mouser → digikey → ti
+                DB::raw("COALESCE(sr_mouser.category, sr_digikey.category, sr_ti.category) as best_category")
             )
             ->orderBy('rfqs.date', 'desc')
             ->orderBy('items.line_number');
@@ -36,11 +49,30 @@ class PurchasingController extends Controller
                 $q->where('items.partnumber', 'ilike', "%{$s}%")
                   ->orWhere('items.overallcode', 'ilike', "%{$s}%")
                   ->orWhere('rfqs.inquiry_n', 'ilike', "%{$s}%")
-                  ->orWhere('sourcing_results.manufacturer_pn', 'ilike', "%{$s}%");
+                  ->orWhere('sr_mouser.manufacturer_pn', 'ilike', "%{$s}%");
             });
         }
 
         $rows = $query->paginate(50)->withQueryString();
+
+        // Pre-compute top-5 suppliers for Active and Passive (cached, same for all rows)
+        $activeSuppliers  = SupplierRecommendationService::getTopSuppliers('Active');
+        $passiveSuppliers = SupplierRecommendationService::getTopSuppliers('Passive');
+
+        // Attach component type + recommended suppliers to each row
+        $rows->getCollection()->transform(function ($row) use ($activeSuppliers, $passiveSuppliers) {
+            $type = SupplierRecommendationService::resolveType(
+                $row->best_manufacturer,
+                $row->best_category
+            );
+            $row->component_type = $type;
+            $row->recommended_suppliers = match($type) {
+                'Active'  => $activeSuppliers,
+                'Passive' => $passiveSuppliers,
+                default   => [],
+            };
+            return $row;
+        });
 
         return view('purchasing.index', compact('rows'));
     }

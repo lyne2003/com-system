@@ -24,46 +24,66 @@
 </x-slot>
 
 <div class="py-6">
-<div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+<div class="max-w-full mx-auto sm:px-6 lg:px-8">
 
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-100 text-gray-600 text-xs uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">Overall Code</th>
-                    <th class="px-4 py-3 text-left">Order Code</th>
-                    <th class="px-4 py-3 text-left">Date</th>
-                    <th class="px-4 py-3 text-left">Part Number</th>
-                    <th class="px-4 py-3 text-left">Mouser Part Number</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Overall Code</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Order Code</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Date</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Part Number</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Mouser Part Number</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap">Type</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 1</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 2</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 3</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 4</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 5</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
             @forelse($rows as $row)
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-mono text-xs text-gray-600">
+                <td class="px-4 py-3 font-mono text-xs text-gray-600 whitespace-nowrap">
                     {{ $row->overallcode ?? '—' }}
                 </td>
-                <td class="px-4 py-3 font-semibold text-gray-800">
+                <td class="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">
                     @if($row->date && $row->order_code)
                         {{ \Carbon\Carbon::parse($row->date)->format('Ymd') }}-{{ $row->order_code }}
                     @else
                         {{ $row->order_code ?? '—' }}
                     @endif
                 </td>
-                <td class="px-4 py-3 text-gray-600">
+                <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
                     {{ $row->date ? \Carbon\Carbon::parse($row->date)->format('d M Y') : '—' }}
                 </td>
-                <td class="px-4 py-3 font-mono font-bold text-gray-900">
+                <td class="px-4 py-3 font-mono font-bold text-gray-900 whitespace-nowrap">
                     {{ $row->partnumber }}
                 </td>
-                <td class="px-4 py-3 font-mono text-xs text-gray-700">
+                <td class="px-4 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">
                     {{ $row->mouser_part_number ?? '—' }}
                 </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    @if($row->component_type === 'Active')
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">⚡ Active</span>
+                    @elseif($row->component_type === 'Passive')
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">🔌 Passive</span>
+                    @else
+                        <span class="text-gray-400 text-xs">—</span>
+                    @endif
+                </td>
+                @for($i = 0; $i < 5; $i++)
+                <td class="px-4 py-3 text-xs font-semibold text-indigo-700 bg-blue-50 whitespace-nowrap">
+                    {{ $row->recommended_suppliers[$i] ?? '—' }}
+                </td>
+                @endfor
             </tr>
             @empty
             <tr>
-                <td colspan="5" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="11" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>
