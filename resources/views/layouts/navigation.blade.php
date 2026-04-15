@@ -36,13 +36,32 @@
                         {{ __('Manufacturers') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('purchasing.index')" :active="request()->routeIs('purchasing.*')">
-                        {{ __('Purchasing') }}
-                    </x-nav-link>
+                    {{-- Purchasing Dropdown --}}
+                    <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <button class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                            {{ request()->routeIs('purchasing.*') || request()->routeIs('smo_suppliers.*')
+                                ? 'border-indigo-400 text-gray-900'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            {{ __('Purchasing') }}
+                            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
 
-                    <x-nav-link :href="route('smo_suppliers.index')" :active="request()->routeIs('smo_suppliers.*')">
-                        {{ __('SMO Suppliers') }}
-                    </x-nav-link>
+                        <div x-show="open" x-transition
+                             class="absolute left-0 mt-0 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                            <a href="{{ route('purchasing.index') }}"
+                               class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg
+                                      {{ request()->routeIs('purchasing.*') ? 'font-semibold text-indigo-600' : '' }}">
+                                🛒 Supplier Recommendation
+                            </a>
+                            <a href="{{ route('smo_suppliers.index') }}"
+                               class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg
+                                      {{ request()->routeIs('smo_suppliers.*') ? 'font-semibold text-indigo-600' : '' }}">
+                                📦 Supplier-Type
+                            </a>
+                        </div>
+                    </div>
 
                     <x-nav-link :href="route('regions.index')" :active="request()->routeIs('regions.*')">
                         {{ __('Regions') }}
