@@ -14,6 +14,7 @@ use App\Http\Controllers\InquiryRuleController;
 use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\SmoSupplierController;
 use App\Http\Controllers\SupplierBrandController;
+use App\Http\Controllers\SupplierSubcategoryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -97,6 +98,10 @@ Route::middleware('auth')->group(function () {
     // Supplier Brands
     Route::get('/supplier-brands', [SupplierBrandController::class, 'index'])->name('supplier_brands.index');
     Route::post('/supplier-brands/upload', [SupplierBrandController::class, 'upload'])->name('supplier_brands.upload');
+
+    // Supplier Subcategories
+    Route::get('/supplier-subcategories', [SupplierSubcategoryController::class, 'index'])->name('supplier_subcategories.index');
+    Route::post('/supplier-subcategories/upload', [SupplierSubcategoryController::class, 'upload'])->name('supplier_subcategories.upload');
 
     // Inquiry Number Rules
     Route::get('/inquiry-rules', [InquiryRuleController::class, 'index'])->name('inquiry_rules.index');

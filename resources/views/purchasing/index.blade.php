@@ -47,6 +47,10 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S3</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S4</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S1</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S2</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S3</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S4</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -93,10 +97,15 @@
                     {{ $row->brand_suppliers[$i] ?? '—' }}
                 </td>
                 @endfor
+                @for($i = 0; $i < 4; $i++)
+                <td class="px-4 py-3 text-xs font-semibold text-purple-700 bg-purple-50 whitespace-nowrap">
+                    {{ $row->subcategory_suppliers[$i] ?? '—' }}
+                </td>
+                @endfor
             </tr>
             @empty
             <tr>
-                <td colspan="16" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="20" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>

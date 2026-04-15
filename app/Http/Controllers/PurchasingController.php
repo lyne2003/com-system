@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\SupplierRecommendationService;
 use App\Services\SupplierBrandService;
+use App\Services\SupplierSubcategoryService;
 
 class PurchasingController extends Controller
 {
@@ -80,6 +81,12 @@ class PurchasingController extends Controller
             // Brand-based suppliers: use RFQ manufacturer first, then fall back to Mouser manufacturer
             $brandName = $row->rfq_manufacturer ?? $row->mouser_manufacturer ?? '';
             $row->brand_suppliers = SupplierBrandService::getTopSuppliersForBrand($brandName, 4);
+
+            // Subcategory-based suppliers: use best_category from sourcing results
+            $row->subcategory_suppliers = SupplierSubcategoryService::getTopSuppliersForSubcategory(
+                $row->best_category ?? '',
+                4
+            );
             return $row;
         });
 
