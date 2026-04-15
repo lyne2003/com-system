@@ -47,11 +47,10 @@ class SupplierBrandController extends Controller
             }
         }
 
-        ksort($brands);
-        ksort($suppliers);
         $brands    = array_keys($brands);
         $suppliers = array_keys($suppliers);
-        sort($suppliers); // ensure case-insensitive A→Z
+        sort($brands);     // A→Z
+        sort($suppliers);  // A→Z
 
         $isEmpty = empty($matrix);
 
