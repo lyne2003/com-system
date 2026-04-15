@@ -40,6 +40,10 @@
                         {{ __('Purchasing') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('smo_suppliers.index')" :active="request()->routeIs('smo_suppliers.*')">
+                        {{ __('SMO Suppliers') }}
+                    </x-nav-link>
+
                     <x-nav-link :href="route('regions.index')" :active="request()->routeIs('regions.*')">
                         {{ __('Regions') }}
                     </x-nav-link>
