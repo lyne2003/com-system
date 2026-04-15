@@ -47,6 +47,7 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S3</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S4</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcategory</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S1</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S3</th>
@@ -97,6 +98,9 @@
                     {{ $row->brand_suppliers[$i] ?? '—' }}
                 </td>
                 @endfor
+                <td class="px-4 py-3 text-xs text-purple-600 bg-purple-50 whitespace-nowrap">
+                    {{ $row->best_category ?? '—' }}
+                </td>
                 @for($i = 0; $i < 4; $i++)
                 <td class="px-4 py-3 text-xs font-semibold text-purple-700 bg-purple-50 whitespace-nowrap">
                     {{ $row->subcategory_suppliers[$i] ?? '—' }}
