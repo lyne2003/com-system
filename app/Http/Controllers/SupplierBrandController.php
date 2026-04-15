@@ -10,18 +10,39 @@ class SupplierBrandController extends Controller
 {
     public function index()
     {
-        // Get all unique suppliers and brands from the table
-        $rows = DB::table('supplier_brands')->get();
+        // Try DB first
+        $rows = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('supplier_brands')) {
+                $rows = DB::table('supplier_brands')->get()->toArray();
+            }
+        } catch (\Throwable $e) {
+            $rows = [];
+        }
 
-        // Build matrix: supplier → brand → count
-        $matrix = [];
-        $brands  = [];
+        $matrix    = [];
+        $brands    = [];
         $suppliers = [];
 
-        foreach ($rows as $row) {
-            $matrix[$row->supplier_name][$row->brand_name] = $row->count;
-            $brands[$row->brand_name] = true;
-            $suppliers[$row->supplier_name] = true;
+        if (!empty($rows)) {
+            // Build from DB
+            foreach ($rows as $row) {
+                $matrix[$row->supplier_name][$row->brand_name] = $row->count;
+                $brands[$row->brand_name]       = true;
+                $suppliers[$row->supplier_name] = true;
+            }
+        } else {
+            // Fall back to hardcoded data from SupplierBrandService
+            $fallback = \App\Services\SupplierBrandService::getFallbackData();
+            foreach ($fallback as $supplier => $brandMap) {
+                foreach ($brandMap as $brand => $count) {
+                    if ($count > 0) {
+                        $matrix[$supplier][$brand] = $count;
+                        $brands[$brand]     = true;
+                        $suppliers[$supplier] = true;
+                    }
+                }
+            }
         }
 
         ksort($brands);
@@ -29,7 +50,7 @@ class SupplierBrandController extends Controller
         $brands    = array_keys($brands);
         $suppliers = array_keys($suppliers);
 
-        $isEmpty = empty($rows->toArray());
+        $isEmpty = empty($matrix);
 
         return view('supplier_brands.index', compact('matrix', 'brands', 'suppliers', 'isEmpty'));
     }

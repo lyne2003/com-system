@@ -32,6 +32,14 @@ class SupplierBrandService
         'USIE' => ['Bourns'=>1,'Coilcraft'=>2,'Infineon'=>3,'Kemet'=>4,'Microchip'=>11,'Murata'=>4,'NXP Semiconductors'=>1,'Panasonic'=>4,'Rohm Semiconductor'=>1,'Samsung'=>4,'STMicroelectronics'=>4,'Texas instruments'=>9,'Vishay'=>7,'Yageo'=>4],
     ];
 
+    /**
+     * Expose the fallback data for display purposes.
+     */
+    public static function getFallbackData(): array
+    {
+        return self::$fallback;
+    }
+
     /** Cached DB data: supplier => [brand => count] */
     private static ?array $dbData = null;
 
