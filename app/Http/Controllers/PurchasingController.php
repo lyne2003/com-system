@@ -11,10 +11,10 @@ class PurchasingController extends Controller
 {
     public function index(Request $request)
     {
-        // Join items → rfqs → sourcing_results (mouser first, then digikey, then ti)
-        // We need manufacturer + category from the best available supplier
+        // Join items → rfqs → manufacturers → sourcing_results
         $query = DB::table('items')
             ->join('rfqs', 'items.rfq_id', '=', 'rfqs.id')
+            ->leftJoin('manufacturers', 'items.manufacturer_id', '=', 'manufacturers.id')
             ->leftJoin('sourcing_results as sr_mouser', function ($join) {
                 $join->on('sr_mouser.item_id', '=', 'items.id')
                      ->where('sr_mouser.supplier', '=', 'mouser');
@@ -33,12 +33,14 @@ class PurchasingController extends Controller
                 'rfqs.inquiry_n as order_code',
                 'rfqs.date',
                 'items.partnumber',
+                // Manufacturer entered by user on the RFQ item
+                'manufacturers.name as rfq_manufacturer',
                 // Mouser part number
                 'sr_mouser.manufacturer_pn as mouser_part_number',
-                // Mouser manufacturer (for display)
+                // Mouser manufacturer (for display / fallback)
                 'sr_mouser.manufacturer as mouser_manufacturer',
-                // Best manufacturer: mouser → digikey → ti
-                DB::raw("COALESCE(sr_mouser.manufacturer, sr_digikey.manufacturer, sr_ti.manufacturer) as best_manufacturer"),
+                // Best manufacturer: RFQ user entry → mouser → digikey → ti
+                DB::raw("COALESCE(manufacturers.name, sr_mouser.manufacturer, sr_digikey.manufacturer, sr_ti.manufacturer) as best_manufacturer"),
                 // Best category: mouser → digikey → ti
                 DB::raw("COALESCE(sr_mouser.category, sr_digikey.category, sr_ti.category) as best_category")
             )
@@ -75,11 +77,9 @@ class PurchasingController extends Controller
                 'Passive' => $passiveSuppliers,
                 default   => [],
             };
-            // Brand-based suppliers: top 4 SMO suppliers for the Mouser manufacturer
-            $row->brand_suppliers = SupplierBrandService::getTopSuppliersForBrand(
-                $row->mouser_manufacturer ?? '',
-                4
-            );
+            // Brand-based suppliers: use RFQ manufacturer first, then fall back to Mouser manufacturer
+            $brandName = $row->rfq_manufacturer ?? $row->mouser_manufacturer ?? '';
+            $row->brand_suppliers = SupplierBrandService::getTopSuppliersForBrand($brandName, 4);
             return $row;
         });
 
