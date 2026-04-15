@@ -34,6 +34,8 @@ class PurchasingController extends Controller
                 'items.partnumber',
                 // Mouser part number
                 'sr_mouser.manufacturer_pn as mouser_part_number',
+                // Mouser manufacturer (for display)
+                'sr_mouser.manufacturer as mouser_manufacturer',
                 // Best manufacturer: mouser → digikey → ti
                 DB::raw("COALESCE(sr_mouser.manufacturer, sr_digikey.manufacturer, sr_ti.manufacturer) as best_manufacturer"),
                 // Best category: mouser → digikey → ti
