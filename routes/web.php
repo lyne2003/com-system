@@ -13,6 +13,7 @@ use App\Http\Controllers\CountryController;
 use App\Http\Controllers\InquiryRuleController;
 use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\SmoSupplierController;
+use App\Http\Controllers\SupplierBrandController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -92,6 +93,10 @@ Route::middleware('auth')->group(function () {
     // SMO Suppliers
     Route::get('/smo-suppliers', [SmoSupplierController::class, 'index'])->name('smo_suppliers.index');
     Route::post('/smo-suppliers/upload', [SmoSupplierController::class, 'upload'])->name('smo_suppliers.upload');
+
+    // Supplier Brands
+    Route::get('/supplier-brands', [SupplierBrandController::class, 'index'])->name('supplier_brands.index');
+    Route::post('/supplier-brands/upload', [SupplierBrandController::class, 'upload'])->name('supplier_brands.upload');
 
     // Inquiry Number Rules
     Route::get('/inquiry-rules', [InquiryRuleController::class, 'index'])->name('inquiry_rules.index');

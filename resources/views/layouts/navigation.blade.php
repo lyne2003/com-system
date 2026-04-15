@@ -56,9 +56,14 @@
                                 🛒 Supplier Recommendation
                             </a>
                             <a href="{{ route('smo_suppliers.index') }}"
-                               class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg
+                               class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50
                                       {{ request()->routeIs('smo_suppliers.*') ? 'font-semibold text-indigo-600' : '' }}">
                                 📦 Supplier-Type
+                            </a>
+                            <a href="{{ route('supplier_brands.index') }}"
+                               class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg
+                                      {{ request()->routeIs('supplier_brands.*') ? 'font-semibold text-indigo-600' : '' }}">
+                                🏷️ Supplier-Brand
                             </a>
                         </div>
                     </div>

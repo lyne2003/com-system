@@ -2,13 +2,16 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
 class SupplierBrandService
 {
     /**
+     * Fallback hardcoded data (used when DB table is empty or not yet migrated).
      * Supplier-Brands data: supplier => [brand => count, ...]
-     * Parsed from the Supplier-Brands Excel sheet.
      */
-    private static array $data = [
+    private static array $fallback = [
         'Ariat' => ['Amphenol'=>10,'Bourns'=>5,'Coilcraft'=>1,'Diodes Incorporated'=>2,'Infineon'=>1,'Kemet'=>1,'Kingbright'=>1,'Microchip'=>1,'Molex'=>1,'Murata'=>6,'NXP Semiconductors'=>3,'Omron'=>1,'Panasonic'=>28,'Rohm Semiconductor'=>2,'STMicroelectronics'=>16,'Taiyo Yuden'=>14,'TDK'=>12,'TE Connectivity'=>7,'Texas instruments'=>15,'Vishay'=>16,'Yageo'=>2],
         'Asai Kosan' => ['AMD / Xilinx'=>29,'Analog Devices'=>574,'Broadcom'=>1,'Infineon'=>1,'Microchip'=>8,'Murata'=>4,'NXP Semiconductors'=>1,'Renesas'=>1,'Rohm Semiconductor'=>1,'STMicroelectronics'=>93,'Taiyo Yuden'=>1,'TDK'=>13,'Texas instruments'=>1,'Vishay'=>2],
         'ATP' => ['Allegro MicroSystems'=>1,'Alps Alpine'=>3,'Amphenol'=>1,'Analog Devices'=>7,'Bourns'=>5,'Bussmann / Eaton'=>2,'C&K'=>2,'Coilcraft'=>3,'CUI Inc.'=>2,'Diodes Incorporated'=>9,'Epcos'=>2,'Infineon'=>3,'ISSI'=>1,'Kemet'=>8,'Kingbright'=>3,'Littelfuse'=>1,'Maxim'=>4,'Microchip'=>2,'Molex'=>1,'Murata'=>334,'NXP Semiconductors'=>11,'Omron'=>1,'ON Semiconductor'=>4,'Onsemi'=>1,'Panasonic'=>59,'Renesas'=>1,'Rohm Semiconductor'=>51,'Samsung'=>472,'Schurter'=>1,'Semtech'=>7,'STMicroelectronics'=>1,'Taiyo Yuden'=>293,'TDK'=>14,'TE Connectivity'=>1,'Texas instruments'=>202,'Vishay'=>272,'Wurth Elektronik'=>30,'Yageo'=>893],
@@ -29,10 +32,45 @@ class SupplierBrandService
         'USIE' => ['Bourns'=>1,'Coilcraft'=>2,'Infineon'=>3,'Kemet'=>4,'Microchip'=>11,'Murata'=>4,'NXP Semiconductors'=>1,'Panasonic'=>4,'Rohm Semiconductor'=>1,'Samsung'=>4,'STMicroelectronics'=>4,'Texas instruments'=>9,'Vishay'=>7,'Yageo'=>4],
     ];
 
+    /** Cached DB data: supplier => [brand => count] */
+    private static ?array $dbData = null;
+
+    /**
+     * Load data from DB if available, otherwise use fallback.
+     */
+    private static function getData(): array
+    {
+        if (self::$dbData !== null) {
+            return self::$dbData;
+        }
+
+        try {
+            if (!Schema::hasTable('supplier_brands')) {
+                self::$dbData = self::$fallback;
+                return self::$dbData;
+            }
+
+            $rows = DB::table('supplier_brands')->get();
+            if ($rows->isEmpty()) {
+                self::$dbData = self::$fallback;
+                return self::$dbData;
+            }
+
+            $data = [];
+            foreach ($rows as $row) {
+                $data[$row->supplier_name][$row->brand_name] = $row->count;
+            }
+            self::$dbData = $data;
+        } catch (\Throwable $e) {
+            self::$dbData = self::$fallback;
+        }
+
+        return self::$dbData;
+    }
+
     /**
      * Given a manufacturer/brand name, return the top N SMO suppliers
      * that carry that brand, ranked by count descending.
-     * Skips duplicates (same supplier won't appear twice).
      *
      * @param string $brand  The manufacturer name (e.g. "Texas instruments")
      * @param int    $limit  How many suppliers to return (default 4)
@@ -44,11 +82,11 @@ class SupplierBrandService
             return [];
         }
 
-        // Case-insensitive brand match
         $brandLower = strtolower(trim($brand));
+        $data = self::getData();
 
         $scores = [];
-        foreach (self::$data as $supplier => $brands) {
+        foreach ($data as $supplier => $brands) {
             foreach ($brands as $b => $count) {
                 if (strtolower($b) === $brandLower) {
                     $scores[$supplier] = $count;
@@ -61,9 +99,15 @@ class SupplierBrandService
             return [];
         }
 
-        // Sort by count descending
         arsort($scores);
-
         return array_slice(array_keys($scores), 0, $limit);
+    }
+
+    /**
+     * Invalidate the in-memory cache (call after uploading new data).
+     */
+    public static function clearCache(): void
+    {
+        self::$dbData = null;
     }
 }
