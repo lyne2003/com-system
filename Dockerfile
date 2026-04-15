@@ -6,8 +6,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libpq-dev \
+    libxml2-dev \
+    libgd-dev \
     curl \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip xml gd \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install composer
