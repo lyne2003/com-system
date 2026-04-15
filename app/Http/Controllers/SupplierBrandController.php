@@ -49,8 +49,8 @@ class SupplierBrandController extends Controller
 
         $brands    = array_keys($brands);
         $suppliers = array_keys($suppliers);
-        sort($brands);     // A→Z
-        sort($suppliers);  // A→Z
+        usort($brands,    fn($a, $b) => strcasecmp($a, $b));  // case-insensitive A→Z
+        usort($suppliers, fn($a, $b) => strcasecmp($a, $b));  // case-insensitive A→Z
 
         $isEmpty = empty($matrix);
 
