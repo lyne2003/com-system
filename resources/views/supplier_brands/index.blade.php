@@ -41,7 +41,7 @@
         <form method="POST" action="{{ route('supplier_brands.upload') }}" enctype="multipart/form-data"
               class="flex items-center gap-4">
             @csrf
-            <input type="file" name="csv_file" accept=".csv,.txt"
+            <input type="file" name="csv_file" accept=".xlsx,.xls,.csv,.txt"
                    class="block text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
                           file:text-sm file:font-semibold file:bg-green-50 file:text-green-700
                           hover:file:bg-green-100 cursor-pointer">
@@ -51,7 +51,7 @@
             </button>
         </form>
         <p class="mt-3 text-xs text-gray-400">
-            Accepted: .csv or .txt (tab or comma separated) · Max size: 10 MB
+            Accepted: .xlsx, .xls, .csv, or .txt · Max size: 20 MB
         </p>
     </div>
 

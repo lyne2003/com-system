@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\SupplierBrandService;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class SupplierBrandController extends Controller
 {
@@ -58,35 +60,96 @@ class SupplierBrandController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:10240',
+            'csv_file' => 'required|file|max:20480',
         ]);
 
-        $file   = $request->file('csv_file');
+        $file      = $request->file('csv_file');
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if ($extension === 'xlsx' || $extension === 'xls') {
+            return $this->uploadXlsx($file);
+        }
+
+        // CSV / TXT path
+        return $this->uploadCsv($file);
+    }
+
+    private function uploadXlsx($file)
+    {
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Could not read the Excel file: ' . $e->getMessage());
+        }
+
+        // Use the first sheet
+        $sheet = $spreadsheet->getActiveSheet();
+        $data  = $sheet->toArray(null, true, true, false); // 0-indexed rows
+
+        if (empty($data)) {
+            return back()->with('error', 'The Excel file appears to be empty.');
+        }
+
+        // Row 0 = header (brand names), col 0 = "Main SMOs (China)" label
+        $headerRow  = $data[0];
+        $brandNames = array_slice($headerRow, 1);
+        // Remove empty trailing brand names
+        $brandNames = array_filter($brandNames, fn($b) => trim((string)$b) !== '');
+        $brandNames = array_values($brandNames);
+
+        $rows          = [];
+        $now           = now();
+        $importedCount = 0;
+
+        foreach (array_slice($data, 1) as $line) {
+            $supplierName = trim((string)($line[0] ?? ''));
+            if (empty($supplierName) || is_numeric($supplierName)) {
+                continue;
+            }
+
+            foreach ($brandNames as $idx => $brand) {
+                $brand = trim((string)$brand);
+                if (empty($brand)) {
+                    continue;
+                }
+                $count = (int)($line[$idx + 1] ?? 0);
+                if ($count > 0) {
+                    $rows[] = [
+                        'supplier_name' => $supplierName,
+                        'brand_name'    => $brand,
+                        'count'         => $count,
+                        'created_at'    => $now,
+                        'updated_at'    => $now,
+                    ];
+                    $importedCount++;
+                }
+            }
+        }
+
+        if (empty($rows)) {
+            return back()->with('error', 'No valid data found in the Excel file. Make sure the format matches the Supplier-Brands sheet.');
+        }
+
+        DB::table('supplier_brands')->truncate();
+        foreach (array_chunk($rows, 500) as $chunk) {
+            DB::table('supplier_brands')->insert($chunk);
+        }
+
+        SupplierBrandService::clearCache();
+
+        return back()->with('success', "{$importedCount} brand-supplier entries imported successfully.");
+    }
+
+    private function uploadCsv($file)
+    {
         $handle = fopen($file->getRealPath(), 'r');
 
         if (!$handle) {
             return back()->with('error', 'Could not open the uploaded file.');
         }
 
-        // Read header row — first row contains brand names
-        $headerRow = fgetcsv($handle, 0, "\t"); // try tab first
-        if (!$headerRow || count($headerRow) < 2) {
-            rewind($handle);
-            $headerRow = fgetcsv($handle, 0, ',');
-        }
-
-        if (!$headerRow) {
-            fclose($handle);
-            return back()->with('error', 'Could not read the header row.');
-        }
-
-        // Detect delimiter by checking header column count
-        // Re-open with correct delimiter
-        fclose($handle);
-        $handle = fopen($file->getRealPath(), 'r');
-
         // Sniff delimiter from first line
-        $firstLine = fgets($handle);
+        $firstLine  = fgets($handle);
         rewind($handle);
         $tabCount   = substr_count($firstLine, "\t");
         $commaCount = substr_count($firstLine, ',');
@@ -99,15 +162,12 @@ class SupplierBrandController extends Controller
             return back()->with('error', 'Empty file.');
         }
 
-        // headers[0] = "Main SMOs (China)" or supplier label — skip it
-        // headers[1..N] = brand names
         $brandNames = array_slice($headers, 1);
-        // Remove empty trailing headers
         $brandNames = array_filter($brandNames, fn($b) => trim($b) !== '');
         $brandNames = array_values($brandNames);
 
-        $rows = [];
-        $now  = now();
+        $rows          = [];
+        $now           = now();
         $importedCount = 0;
 
         while (($line = fgetcsv($handle, 0, $delimiter)) !== false) {
@@ -116,8 +176,6 @@ class SupplierBrandController extends Controller
             }
 
             $supplierName = trim($line[0]);
-
-            // Skip rows that look like formula/summary rows (no supplier name or starts with space)
             if (empty($supplierName) || is_numeric($supplierName)) {
                 continue;
             }
@@ -127,7 +185,7 @@ class SupplierBrandController extends Controller
                 if (empty($brand)) {
                     continue;
                 }
-                $count = (int) ($line[$idx + 1] ?? 0);
+                $count = (int)($line[$idx + 1] ?? 0);
                 if ($count > 0) {
                     $rows[] = [
                         'supplier_name' => $supplierName,
@@ -148,12 +206,10 @@ class SupplierBrandController extends Controller
         }
 
         DB::table('supplier_brands')->truncate();
-        // Insert in chunks to avoid query size limits
         foreach (array_chunk($rows, 500) as $chunk) {
             DB::table('supplier_brands')->insert($chunk);
         }
 
-        // Clear the in-memory cache so next request picks up new data
         SupplierBrandService::clearCache();
 
         return back()->with('success', "{$importedCount} brand-supplier entries imported successfully.");
