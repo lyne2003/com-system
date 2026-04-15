@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\SupplierRecommendationService;
+use App\Services\SupplierBrandService;
 
 class PurchasingController extends Controller
 {
@@ -74,6 +75,11 @@ class PurchasingController extends Controller
                 'Passive' => $passiveSuppliers,
                 default   => [],
             };
+            // Brand-based suppliers: top 4 SMO suppliers for the Mouser manufacturer
+            $row->brand_suppliers = SupplierBrandService::getTopSuppliersForBrand(
+                $row->mouser_manufacturer ?? '',
+                4
+            );
             return $row;
         });
 

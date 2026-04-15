@@ -43,6 +43,10 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 4</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 5</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-yellow-50">Manufacturer</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S1</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S2</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S3</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S4</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -84,10 +88,15 @@
                 <td class="px-4 py-3 text-xs font-semibold text-amber-700 bg-yellow-50 whitespace-nowrap">
                     {{ $row->mouser_manufacturer ?? '—' }}
                 </td>
+                @for($i = 0; $i < 4; $i++)
+                <td class="px-4 py-3 text-xs font-semibold text-green-700 bg-green-50 whitespace-nowrap">
+                    {{ $row->brand_suppliers[$i] ?? '—' }}
+                </td>
+                @endfor
             </tr>
             @empty
             <tr>
-                <td colspan="12" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="16" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>
