@@ -86,7 +86,7 @@
                 </td>
                 @endfor
                 <td class="px-4 py-3 text-xs font-semibold text-amber-700 bg-yellow-50 whitespace-nowrap">
-                    {{ $row->mouser_manufacturer ?? '—' }}
+                    {{ $row->rfq_manufacturer ?? $row->mouser_manufacturer ?? '—' }}
                 </td>
                 @for($i = 0; $i < 4; $i++)
                 <td class="px-4 py-3 text-xs font-semibold text-green-700 bg-green-50 whitespace-nowrap">
