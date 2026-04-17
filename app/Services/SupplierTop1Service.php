@@ -103,14 +103,13 @@ class SupplierTop1Service
             return 'LinkIC';
         }
 
-        // 13. TRUE fallback: last non-empty supplier from all supplier columns
-        foreach (array_reverse($allSuppliers) as $s) {
+        // 13. TRUE fallback: first non-empty supplier from all supplier columns (left to right)
+        foreach ($allSuppliers as $s) {
             if (!empty($s) && $s !== '—') {
                 return $s;
             }
         }
 
-        // If nothing at all, return first supplier
-        return $allSuppliers[0] ?? '';
+        return '';
     }
 }
