@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\SupplierRecommendationService;
 use App\Services\SupplierBrandService;
 use App\Services\SupplierSubcategoryService;
+use App\Services\SupplierTop1Service;
 
 class PurchasingController extends Controller
 {
@@ -34,6 +35,7 @@ class PurchasingController extends Controller
                 'rfqs.inquiry_n as order_code',
                 'rfqs.date',
                 'items.partnumber',
+                'items.qty',
                 // Manufacturer entered by user on the RFQ item
                 'manufacturers.name as rfq_manufacturer',
                 // Mouser part number
@@ -43,7 +45,11 @@ class PurchasingController extends Controller
                 // Best manufacturer: RFQ user entry → mouser → digikey → ti
                 DB::raw("COALESCE(manufacturers.name, sr_mouser.manufacturer, sr_digikey.manufacturer, sr_ti.manufacturer) as best_manufacturer"),
                 // Best category: mouser → digikey → ti
-                DB::raw("COALESCE(sr_mouser.category, sr_digikey.category, sr_ti.category) as best_category")
+                DB::raw("COALESCE(sr_mouser.category, sr_digikey.category, sr_ti.category) as best_category"),
+                // Unit prices for volume calculation (mouser → digikey → ti)
+                'sr_mouser.unit_price as mouser_unit_price',
+                'sr_digikey.unit_price as digikey_unit_price',
+                'sr_ti.unit_price as ti_unit_price'
             )
             ->orderBy('rfqs.date', 'desc')
             ->orderBy('rfqs.created_at', 'desc')
@@ -78,6 +84,7 @@ class PurchasingController extends Controller
                 'Passive' => $passiveSuppliers,
                 default   => [],
             };
+
             // Brand-based suppliers: use RFQ manufacturer first, then fall back to Mouser manufacturer
             $brandName = $row->rfq_manufacturer ?? $row->mouser_manufacturer ?? '';
             $row->brand_suppliers = SupplierBrandService::getTopSuppliersForBrand($brandName, 4);
@@ -87,6 +94,27 @@ class PurchasingController extends Controller
                 $row->best_category ?? '',
                 4
             );
+
+            // Volume = unit_price × qty  (mouser → digikey → ti)
+            $unitPrice = $row->mouser_unit_price ?? $row->digikey_unit_price ?? $row->ti_unit_price ?? null;
+            $qty       = $row->qty ?? 0;
+            $volume    = ($unitPrice !== null && $qty > 0) ? ((float)$unitPrice * (int)$qty) : null;
+            $row->volume = $volume;
+
+            // Build the flat list of all other suppliers (S1-S5, BrandS1-S4, SubcatS1-S4)
+            $allSuppliers = array_merge(
+                $row->recommended_suppliers,
+                $row->brand_suppliers,
+                $row->subcategory_suppliers
+            );
+
+            // Supplier Top 1
+            $row->supplier_top1 = SupplierTop1Service::resolve(
+                $row->best_manufacturer,
+                $volume,
+                $allSuppliers
+            );
+
             return $row;
         });
 
