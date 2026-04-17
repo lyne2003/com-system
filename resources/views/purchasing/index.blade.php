@@ -52,6 +52,7 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S3</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S4</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-50">Line Volume ($)</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-100 font-bold">Supplier Top 1</th>
                 </tr>
             </thead>
@@ -107,7 +108,14 @@
                     {{ $row->subcategory_suppliers[$i] ?? '—' }}
                 </td>
                 @endfor
-                <td class="px-4 py-3 text-xs font-bold text-orange-800 bg-orange-50 whitespace-nowrap">
+                <td class="px-4 py-3 text-xs text-orange-700 bg-orange-50 whitespace-nowrap text-right">
+                    @if($row->volume !== null)
+                        ${{ number_format($row->volume, 2) }}
+                    @else
+                        —
+                    @endif
+                </td>
+                <td class="px-4 py-3 text-xs font-bold text-orange-800 bg-orange-100 whitespace-nowrap">
                     {{ $row->supplier_top1 ?? '—' }}
                 </td>
             </tr>
