@@ -42,12 +42,29 @@ $supplierOptions = array_unique([
 ]);
 @endphp
 
+<style>
+/* Hidden columns */
+.col-details { display: none; }
+.col-details-visible { display: table-cell; }
+</style>
+
 <div class="py-6">
 <div class="max-w-full mx-auto sm:px-6 lg:px-8">
 
+    {{-- Toggle button --}}
+    <div class="mb-3 flex items-center gap-3">
+        <button id="toggleDetails"
+                onclick="toggleDetailCols()"
+                class="px-4 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg flex items-center gap-2">
+            <span id="toggleIcon">▶</span>
+            <span id="toggleLabel">Show Details</span>
+        </button>
+        <span class="text-xs text-gray-400">Type, Suppliers, Manufacturer, Brand, Subcategory, Volume, Top Suppliers, Online Pricing</span>
+    </div>
+
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full text-sm" id="purchasingTable">
             <thead class="bg-gray-100 text-gray-600 text-xs uppercase">
                 <tr>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-yellow-100">Notes to Purchasing</th>
@@ -56,28 +73,30 @@ $supplierOptions = array_unique([
                     <th class="px-4 py-3 text-left whitespace-nowrap">Date</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap">Part Number</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap">Mouser Part Number</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap">Type</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 1</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 2</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 3</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 4</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 5</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-yellow-50">Manufacturer</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S1</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S2</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S3</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S4</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcategory</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S1</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S2</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S3</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S4</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-50">Line Volume ($)</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-100 font-bold">Supplier Top 1</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-red-100 font-bold">Supplier Top 2</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-pink-100 font-bold">Supplier Top 3</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-rose-100 font-bold">Supplier Top 4</th>
-                    <th class="px-4 py-3 text-left whitespace-nowrap bg-teal-50">Online Pricing</th>
+                    {{-- Collapsible columns --}}
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap">Type</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 1</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 2</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 3</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 4</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-blue-50">Supplier 5</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-yellow-50">Manufacturer</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S1</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S2</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S3</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-green-50">Brand S4</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcategory</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S1</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S2</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S3</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S4</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-orange-50">Line Volume ($)</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-orange-100 font-bold">Supplier Top 1</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-red-100 font-bold">Supplier Top 2</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-pink-100 font-bold">Supplier Top 3</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-rose-100 font-bold">Supplier Top 4</th>
+                    <th class="col-details px-4 py-3 text-left whitespace-nowrap bg-teal-50">Online Pricing</th>
+                    {{-- Always visible --}}
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-indigo-100 font-bold">Assigned Supplier</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-violet-100 font-bold">Assigned Supplier 2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-fuchsia-100 font-bold">Assigned Supplier 3</th>
@@ -115,7 +134,8 @@ $supplierOptions = array_unique([
                 <td class="px-4 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">
                     {{ $row->mouser_part_number ?? '—' }}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap">
+                {{-- Collapsible cells --}}
+                <td class="col-details px-4 py-3 whitespace-nowrap">
                     @if($row->component_type === 'Active')
                         <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">⚡ Active</span>
                     @elseif($row->component_type === 'Passive')
@@ -125,46 +145,46 @@ $supplierOptions = array_unique([
                     @endif
                 </td>
                 @for($i = 0; $i < 5; $i++)
-                <td class="px-4 py-3 text-xs font-semibold text-indigo-700 bg-blue-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-semibold text-indigo-700 bg-blue-50 whitespace-nowrap">
                     {{ $row->recommended_suppliers[$i] ?? '—' }}
                 </td>
                 @endfor
-                <td class="px-4 py-3 text-xs font-semibold text-amber-700 bg-yellow-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-semibold text-amber-700 bg-yellow-50 whitespace-nowrap">
                     {{ $row->rfq_manufacturer ?? $row->mouser_manufacturer ?? '—' }}
                 </td>
                 @for($i = 0; $i < 4; $i++)
-                <td class="px-4 py-3 text-xs font-semibold text-green-700 bg-green-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-semibold text-green-700 bg-green-50 whitespace-nowrap">
                     {{ $row->brand_suppliers[$i] ?? '—' }}
                 </td>
                 @endfor
-                <td class="px-4 py-3 text-xs text-purple-600 bg-purple-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs text-purple-600 bg-purple-50 whitespace-nowrap">
                     {{ $row->best_category ?? '—' }}
                 </td>
                 @for($i = 0; $i < 4; $i++)
-                <td class="px-4 py-3 text-xs font-semibold text-purple-700 bg-purple-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-semibold text-purple-700 bg-purple-50 whitespace-nowrap">
                     {{ $row->subcategory_suppliers[$i] ?? '—' }}
                 </td>
                 @endfor
-                <td class="px-4 py-3 text-xs text-orange-700 bg-orange-50 whitespace-nowrap text-right">
+                <td class="col-details px-4 py-3 text-xs text-orange-700 bg-orange-50 whitespace-nowrap text-right">
                     @if($row->volume !== null)
                         ${{ number_format($row->volume, 2) }}
                     @else
                         —
                     @endif
                 </td>
-                <td class="px-4 py-3 text-xs font-bold text-orange-800 bg-orange-100 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-bold text-orange-800 bg-orange-100 whitespace-nowrap">
                     {{ $row->supplier_top1 ?? '—' }}
                 </td>
-                <td class="px-4 py-3 text-xs font-bold text-red-800 bg-red-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-bold text-red-800 bg-red-50 whitespace-nowrap">
                     {{ $row->supplier_top2 ?? '—' }}
                 </td>
-                <td class="px-4 py-3 text-xs font-bold text-pink-800 bg-pink-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-bold text-pink-800 bg-pink-50 whitespace-nowrap">
                     {{ ($row->supplier_top3 ?? '') !== '' ? $row->supplier_top3 : '—' }}
                 </td>
-                <td class="px-4 py-3 text-xs font-bold text-rose-800 bg-rose-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-bold text-rose-800 bg-rose-50 whitespace-nowrap">
                     {{ ($row->supplier_top4 ?? '') !== '' ? $row->supplier_top4 : '—' }}
                 </td>
-                <td class="px-4 py-3 text-xs font-semibold text-center bg-teal-50 whitespace-nowrap">
+                <td class="col-details px-4 py-3 text-xs font-semibold text-center bg-teal-50 whitespace-nowrap">
                     @if($onlinePricing)
                         <span class="text-teal-700">Yes</span>
                     @endif
@@ -221,5 +241,19 @@ $supplierOptions = array_unique([
 
 </div>
 </div>
+
+<script>
+let detailsVisible = false;
+
+function toggleDetailCols() {
+    detailsVisible = !detailsVisible;
+    const cells = document.querySelectorAll('.col-details');
+    cells.forEach(cell => {
+        cell.style.display = detailsVisible ? 'table-cell' : 'none';
+    });
+    document.getElementById('toggleIcon').textContent  = detailsVisible ? '▼' : '▶';
+    document.getElementById('toggleLabel').textContent = detailsVisible ? 'Hide Details' : 'Show Details';
+}
+</script>
 
 </x-app-layout>
