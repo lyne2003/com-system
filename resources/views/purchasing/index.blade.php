@@ -57,6 +57,7 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-red-100 font-bold">Supplier Top 2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-pink-100 font-bold">Supplier Top 3</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-rose-100 font-bold">Supplier Top 4</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-teal-50">Online Pricing</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -129,6 +130,11 @@
                 </td>
                 <td class="px-4 py-3 text-xs font-bold text-rose-800 bg-rose-50 whitespace-nowrap">
                     {{ ($row->supplier_top4 ?? '') !== '' ? $row->supplier_top4 : '—' }}
+                </td>
+                <td class="px-4 py-3 text-xs font-semibold text-center bg-teal-50 whitespace-nowrap">
+                    @if($row->volume !== null && $row->volume > 0 && $row->volume <= 300)
+                        <span class="text-teal-700">Yes</span>
+                    @endif
                 </td>
             </tr>
             @empty
