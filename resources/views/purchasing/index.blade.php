@@ -136,7 +136,7 @@
                     {{ ($row->supplier_top4 ?? '') !== '' ? $row->supplier_top4 : '—' }}
                 </td>
                 <td class="px-4 py-3 text-xs font-semibold text-center bg-teal-50 whitespace-nowrap">
-                    @if($row->volume !== null && $row->volume > 0 && $row->volume <= 300)
+                    @if(($row->volume !== null && $row->volume > 0 && $row->volume <= 300) || str_contains(strtolower($row->notes_to_purchasing ?? ''), 'budgetary'))
                         <span class="text-teal-700">Yes</span>
                     @endif
                 </td>
