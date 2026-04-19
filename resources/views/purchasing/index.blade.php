@@ -54,6 +54,7 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-purple-50">Subcat S4</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-50">Line Volume ($)</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-100 font-bold">Supplier Top 1</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-red-100 font-bold">Supplier Top 2</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -118,10 +119,13 @@
                 <td class="px-4 py-3 text-xs font-bold text-orange-800 bg-orange-100 whitespace-nowrap">
                     {{ $row->supplier_top1 ?? '—' }}
                 </td>
+                <td class="px-4 py-3 text-xs font-bold text-red-800 bg-red-50 whitespace-nowrap">
+                    {{ $row->supplier_top2 ?? '—' }}
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="22" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="24" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>

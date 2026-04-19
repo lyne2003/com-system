@@ -8,6 +8,7 @@ use App\Services\SupplierRecommendationService;
 use App\Services\SupplierBrandService;
 use App\Services\SupplierSubcategoryService;
 use App\Services\SupplierTop1Service;
+use App\Services\SupplierTop2Service;
 
 class PurchasingController extends Controller
 {
@@ -113,6 +114,16 @@ class PurchasingController extends Controller
                 $row->best_manufacturer,
                 $volume,
                 $allSuppliers
+            );
+
+            // Supplier Top 2
+            $row->supplier_top2 = SupplierTop2Service::resolve(
+                $row->component_type,
+                $row->best_manufacturer,
+                $row->partnumber,
+                $row->recommended_suppliers[0] ?? '',
+                $row->recommended_suppliers[1] ?? '',
+                $row->supplier_top1
             );
 
             return $row;
