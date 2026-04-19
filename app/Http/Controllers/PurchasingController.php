@@ -132,6 +132,7 @@ class PurchasingController extends Controller
                 $row->component_type,
                 $volume,
                 $row->partnumber,
+                $row->recommended_suppliers,  // type-based S1/S2/S3 for empty check
                 $allSuppliers,
                 $row->supplier_top1,
                 $row->supplier_top2
