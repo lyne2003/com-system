@@ -34,6 +34,7 @@ class PurchasingController extends Controller
             })
             ->select(
                 'items.id as item_id',
+                'rfqs.notes_to_purchasing',
                 'items.overallcode',
                 'rfqs.inquiry_n as order_code',
                 'rfqs.date',

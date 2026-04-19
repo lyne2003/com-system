@@ -31,6 +31,7 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-100 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-yellow-100">Notes to Purchasing</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap">Overall Code</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap">Order Code</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap">Date</th>
@@ -63,6 +64,9 @@
             <tbody class="divide-y divide-gray-100">
             @forelse($rows as $row)
             <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-xs text-yellow-800 bg-yellow-50 max-w-xs">
+                    {{ $row->notes_to_purchasing ?? '' }}
+                </td>
                 <td class="px-4 py-3 font-mono text-xs text-gray-600 whitespace-nowrap">
                     {{ $row->overallcode ?? '—' }}
                 </td>
