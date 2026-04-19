@@ -109,7 +109,7 @@ $supplierOptions = array_unique([
                     || str_contains(strtolower($row->notes_to_purchasing ?? ''), 'budgetary');
                 $assignedDefault  = $onlinePricing ? 'Mouser'  : ($row->supplier_top1 ?? '');
                 $assigned2Default = $onlinePricing ? 'Digikey' : ($row->supplier_top2 ?? '');
-                $assigned3Default = ($row->supplier_top3 ?? '');
+                $assigned3Default = $onlinePricing ? '' : ($row->supplier_top3 ?? '');
             @endphp
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 text-xs text-yellow-800 bg-yellow-50 max-w-xs">
