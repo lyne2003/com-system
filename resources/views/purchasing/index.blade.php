@@ -55,6 +55,7 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-50">Line Volume ($)</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-100 font-bold">Supplier Top 1</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-red-100 font-bold">Supplier Top 2</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-pink-100 font-bold">Supplier Top 3</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -122,10 +123,13 @@
                 <td class="px-4 py-3 text-xs font-bold text-red-800 bg-red-50 whitespace-nowrap">
                     {{ $row->supplier_top2 ?? '—' }}
                 </td>
+                <td class="px-4 py-3 text-xs font-bold text-pink-800 bg-pink-50 whitespace-nowrap">
+                    {{ ($row->supplier_top3 ?? '') !== '' ? $row->supplier_top3 : '—' }}
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="24" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="25" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>

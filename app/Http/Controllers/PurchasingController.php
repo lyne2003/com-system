@@ -9,6 +9,7 @@ use App\Services\SupplierBrandService;
 use App\Services\SupplierSubcategoryService;
 use App\Services\SupplierTop1Service;
 use App\Services\SupplierTop2Service;
+use App\Services\SupplierTop3Service;
 
 class PurchasingController extends Controller
 {
@@ -124,6 +125,16 @@ class PurchasingController extends Controller
                 $row->recommended_suppliers[0] ?? '',
                 $row->recommended_suppliers[1] ?? '',
                 $row->supplier_top1
+            );
+
+            // Supplier Top 3
+            $row->supplier_top3 = SupplierTop3Service::resolve(
+                $row->component_type,
+                $volume,
+                $row->partnumber,
+                $allSuppliers,
+                $row->supplier_top1,
+                $row->supplier_top2
             );
 
             return $row;
