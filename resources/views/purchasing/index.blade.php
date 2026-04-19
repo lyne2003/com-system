@@ -23,6 +23,25 @@
     </div>
 </x-slot>
 
+@php
+$supplierOptions = array_unique([
+    'Allcere','Ariat','ATP','B1B','Crassus','Hayma','LiangXin','IcKey',
+    'Kehuite','Maxtronic','Perceptive','Jeking','SMYG','USIE','Wynn',
+    'XKHG-IC','Hongfa','YND','ASCO','Anchor','Chipower Electronics',
+    'Asai Kosan','X.MU','Shainor','SRH Electronics','Eastech','Oneyac',
+    'Yuguang','Drsic','Coral','Future','Mouser','Digikey','Shenzhen',
+    'DGT Industrial Limited','THJ','Briocean','Win Source','Cytech',
+    'Microchip Direct','Avnet (HK)','Macnica (USA)',
+    'Future // RFMW','Future // WT','Future // TTI','WPI','WT','Superco',
+    'LinkIC','CJJ HK TECHNOLOGY LIMITED','Brightmile Limited',
+    'YSX Tech Co., Ltd.','FANCO ELECTRONICS',
+    'Vadas International Co., Ltd.','Flyking Technology Co .,Ltd.',
+    'R&A Electronics Co., Ltd.',
+    'Shenzhen WeiTaiXu Capacitors Co.,Ltd','Elias','Online Pricing',
+    'None','Ordex','Omron','Micron','On Semi','Sourceability',
+]);
+@endphp
+
 <div class="py-6">
 <div class="max-w-full mx-auto sm:px-6 lg:px-8">
 
@@ -60,10 +79,17 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-rose-100 font-bold">Supplier Top 4</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-teal-50">Online Pricing</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-indigo-100 font-bold">Assigned Supplier</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-violet-100 font-bold">Assigned Supplier 2</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
             @forelse($rows as $row)
+            @php
+                $onlinePricing = ($row->volume !== null && $row->volume > 0 && $row->volume <= 300)
+                    || str_contains(strtolower($row->notes_to_purchasing ?? ''), 'budgetary');
+                $assignedDefault  = $onlinePricing ? 'Mouser'  : ($row->supplier_top1 ?? '');
+                $assigned2Default = $onlinePricing ? 'Digikey' : ($row->supplier_top2 ?? '');
+            @endphp
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 text-xs text-yellow-800 bg-yellow-50 max-w-xs">
                     {{ $row->notes_to_purchasing ?? '' }}
@@ -136,48 +162,35 @@
                 <td class="px-4 py-3 text-xs font-bold text-rose-800 bg-rose-50 whitespace-nowrap">
                     {{ ($row->supplier_top4 ?? '') !== '' ? $row->supplier_top4 : '—' }}
                 </td>
-                @php
-                    $onlinePricing = ($row->volume !== null && $row->volume > 0 && $row->volume <= 300)
-                        || str_contains(strtolower($row->notes_to_purchasing ?? ''), 'budgetary');
-                    $assignedDefault = $onlinePricing ? 'Mouser' : ($row->supplier_top1 ?? '');
-                @endphp
                 <td class="px-4 py-3 text-xs font-semibold text-center bg-teal-50 whitespace-nowrap">
                     @if($onlinePricing)
                         <span class="text-teal-700">Yes</span>
                     @endif
                 </td>
+                {{-- Assigned Supplier 1 --}}
                 <td class="px-4 py-3 bg-indigo-50 whitespace-nowrap">
                     <select name="assigned_supplier[{{ $row->item_id }}]"
                             class="text-xs border border-indigo-300 rounded px-2 py-1 bg-white text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44">
-                        @php
-                        $supplierOptions = [
-                            'Allcere','Ariat','ATP','B1B','Crassus','Hayma','LiangXin','IcKey',
-                            'Kehuite','Maxtronic','Perceptive','Jeking','SMYG','USIE','Wynn',
-                            'XKHG-IC','Hongfa','YND','ASCO','Anchor','Chipower Electronics',
-                            'Asai Kosan','X.MU','Shainor','SRH Electronics','Eastech','Oneyac',
-                            'Yuguang','Drsic','Coral','Future','Mouser','Digikey','Shenzhen',
-                            'DGT Industrial Limited','THJ','Briocean','Win Source','Cytech',
-                            'Microchip Direct','Avnet (HK)','Macnica (USA)','Future',
-                            'Future // RFMW','Future // WT','Future // TTI','WPI','WT','Superco',
-                            'LinkIC','CJJ HK TECHNOLOGY LIMITED','Brightmile Limited',
-                            'YSX Tech Co., Ltd.','FANCO ELECTRONICS',
-                            'Vadas International Co., Ltd.','Flyking Technology Co .,Ltd.',
-                            'R&A Electronics Co., Ltd.',
-                            'Shenzhen WeiTaiXu Capacitors Co.,Ltd','Elias','Online Pricing',
-                            'None','Ordex','Omron','Micron','On Semi','Sourceability',
-                        ];
-                        $supplierOptions = array_unique($supplierOptions);
-                        @endphp
                         <option value="">— Select —</option>
                         @foreach($supplierOptions as $opt)
                             <option value="{{ $opt }}" @selected($opt === $assignedDefault)>{{ $opt }}</option>
                         @endforeach
                     </select>
                 </td>
+                {{-- Assigned Supplier 2 --}}
+                <td class="px-4 py-3 bg-violet-50 whitespace-nowrap">
+                    <select name="assigned_supplier2[{{ $row->item_id }}]"
+                            class="text-xs border border-violet-300 rounded px-2 py-1 bg-white text-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-400 w-44">
+                        <option value="">— Select —</option>
+                        @foreach($supplierOptions as $opt)
+                            <option value="{{ $opt }}" @selected($opt === $assigned2Default)>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="29" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="30" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>
