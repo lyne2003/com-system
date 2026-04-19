@@ -10,6 +10,7 @@ use App\Services\SupplierSubcategoryService;
 use App\Services\SupplierTop1Service;
 use App\Services\SupplierTop2Service;
 use App\Services\SupplierTop3Service;
+use App\Services\SupplierTop4Service;
 
 class PurchasingController extends Controller
 {
@@ -136,6 +137,14 @@ class PurchasingController extends Controller
                 $allSuppliers,
                 $row->supplier_top1,
                 $row->supplier_top2
+            );
+
+            // Supplier Top 4
+            $row->supplier_top4 = SupplierTop4Service::resolve(
+                $allSuppliers,
+                $row->supplier_top1,
+                $row->supplier_top2,
+                $row->supplier_top3
             );
 
             return $row;

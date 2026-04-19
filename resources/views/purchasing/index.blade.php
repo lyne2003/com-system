@@ -56,6 +56,7 @@
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-orange-100 font-bold">Supplier Top 1</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-red-100 font-bold">Supplier Top 2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-pink-100 font-bold">Supplier Top 3</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-rose-100 font-bold">Supplier Top 4</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -125,6 +126,9 @@
                 </td>
                 <td class="px-4 py-3 text-xs font-bold text-pink-800 bg-pink-50 whitespace-nowrap">
                     {{ ($row->supplier_top3 ?? '') !== '' ? $row->supplier_top3 : '—' }}
+                </td>
+                <td class="px-4 py-3 text-xs font-bold text-rose-800 bg-rose-50 whitespace-nowrap">
+                    {{ ($row->supplier_top4 ?? '') !== '' ? $row->supplier_top4 : '—' }}
                 </td>
             </tr>
             @empty
