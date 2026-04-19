@@ -80,6 +80,7 @@ $supplierOptions = array_unique([
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-teal-50">Online Pricing</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-indigo-100 font-bold">Assigned Supplier</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-violet-100 font-bold">Assigned Supplier 2</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-fuchsia-100 font-bold">Assigned Supplier 3</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -89,6 +90,7 @@ $supplierOptions = array_unique([
                     || str_contains(strtolower($row->notes_to_purchasing ?? ''), 'budgetary');
                 $assignedDefault  = $onlinePricing ? 'Mouser'  : ($row->supplier_top1 ?? '');
                 $assigned2Default = $onlinePricing ? 'Digikey' : ($row->supplier_top2 ?? '');
+                $assigned3Default = ($row->supplier_top3 ?? '');
             @endphp
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 text-xs text-yellow-800 bg-yellow-50 max-w-xs">
@@ -187,10 +189,20 @@ $supplierOptions = array_unique([
                         @endforeach
                     </select>
                 </td>
+                {{-- Assigned Supplier 3 --}}
+                <td class="px-4 py-3 bg-fuchsia-50 whitespace-nowrap">
+                    <select name="assigned_supplier3[{{ $row->item_id }}]"
+                            class="text-xs border border-fuchsia-300 rounded px-2 py-1 bg-white text-fuchsia-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 w-44">
+                        <option value="">— Select —</option>
+                        @foreach($supplierOptions as $opt)
+                            <option value="{{ $opt }}" @selected($opt === $assigned3Default)>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="30" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="31" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>
