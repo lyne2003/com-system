@@ -232,7 +232,7 @@ tr.row-processed td select { opacity: 0.6; pointer-events: none; }
                         <div class="flex flex-col items-center gap-1">
                             <span class="text-green-700 font-semibold text-xs">✅ Processed</span>
                             @if($row->processed_at)
-                                <span class="text-gray-400 text-xs">{{ \Carbon\Carbon::parse($row->processed_at)->format('d M Y') }}</span>
+                                <span class="text-gray-400 text-xs">{{ \Carbon\Carbon::parse($row->processed_at)->format('d M Y H:i') }}</span>
                             @endif
                             <button onclick="markRow(this, false)"
                                     class="text-xs text-gray-400 hover:text-red-500 underline mt-0.5">
@@ -316,7 +316,9 @@ function markRow(btn, isProcessed) {
             const statusCell = btn.closest('td');
             if (isProcessed) {
                 tr.classList.add('row-processed');
-                const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+                const now = new Date();
+                const today = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+                    + ' ' + now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
                 statusCell.innerHTML = `
                     <div class="flex flex-col items-center gap-1">
                         <span class="text-green-700 font-semibold text-xs">✅ Processed</span>
