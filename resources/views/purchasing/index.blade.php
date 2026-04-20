@@ -46,6 +46,9 @@ $supplierOptions = array_unique([
 /* Hidden columns */
 .col-details { display: none; }
 .col-details-visible { display: table-cell; }
+/* Processed row */
+tr.row-processed td { background-color: #f0fdf4 !important; }
+tr.row-processed td select { opacity: 0.6; pointer-events: none; }
 </style>
 
 <div class="py-6">
@@ -100,6 +103,7 @@ $supplierOptions = array_unique([
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-indigo-100 font-bold">Assigned Supplier</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-violet-100 font-bold">Assigned Supplier 2</th>
                     <th class="px-4 py-3 text-left whitespace-nowrap bg-fuchsia-100 font-bold">Assigned Supplier 3</th>
+                    <th class="px-4 py-3 text-left whitespace-nowrap bg-green-100 font-bold">Status</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -107,11 +111,17 @@ $supplierOptions = array_unique([
             @php
                 $onlinePricing = ($row->volume !== null && $row->volume > 0 && $row->volume <= 300)
                     || str_contains(strtolower($row->notes_to_purchasing ?? ''), 'budgetary');
-                $assignedDefault  = $onlinePricing ? 'Mouser'  : ($row->supplier_top1 ?? '');
-                $assigned2Default = $onlinePricing ? 'Digikey' : ($row->supplier_top2 ?? '');
-                $assigned3Default = $onlinePricing ? '' : ($row->supplier_top3 ?? '');
+
+                // Use saved values if available, otherwise fall back to computed defaults
+                $assignedDefault  = $row->saved_supplier1 ?? ($onlinePricing ? 'Mouser'  : ($row->supplier_top1 ?? ''));
+                $assigned2Default = $row->saved_supplier2 ?? ($onlinePricing ? 'Digikey' : ($row->supplier_top2 ?? ''));
+                $assigned3Default = $row->saved_supplier3 ?? ($onlinePricing ? '' : ($row->supplier_top3 ?? ''));
+                $isProcessed      = (bool)($row->is_processed ?? false);
             @endphp
-            <tr class="hover:bg-gray-50">
+            <tr class="hover:bg-gray-50 {{ $isProcessed ? 'row-processed' : '' }}"
+                id="row-{{ $row->item_id }}"
+                data-item-id="{{ $row->item_id }}"
+                data-save-url="{{ route('purchasing.save', $row->item_id) }}">
                 <td class="px-4 py-3 text-xs text-yellow-800 bg-yellow-50 max-w-xs">
                     {{ $row->notes_to_purchasing ?? '' }}
                 </td>
@@ -191,8 +201,7 @@ $supplierOptions = array_unique([
                 </td>
                 {{-- Assigned Supplier 1 --}}
                 <td class="px-4 py-3 bg-indigo-50 whitespace-nowrap">
-                    <select name="assigned_supplier[{{ $row->item_id }}]"
-                            class="text-xs border border-indigo-300 rounded px-2 py-1 bg-white text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44">
+                    <select class="sel-s1 text-xs border border-indigo-300 rounded px-2 py-1 bg-white text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44">
                         <option value="">— Select —</option>
                         @foreach($supplierOptions as $opt)
                             <option value="{{ $opt }}" @selected($opt === $assignedDefault)>{{ $opt }}</option>
@@ -201,8 +210,7 @@ $supplierOptions = array_unique([
                 </td>
                 {{-- Assigned Supplier 2 --}}
                 <td class="px-4 py-3 bg-violet-50 whitespace-nowrap">
-                    <select name="assigned_supplier2[{{ $row->item_id }}]"
-                            class="text-xs border border-violet-300 rounded px-2 py-1 bg-white text-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-400 w-44">
+                    <select class="sel-s2 text-xs border border-violet-300 rounded px-2 py-1 bg-white text-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-400 w-44">
                         <option value="">— Select —</option>
                         @foreach($supplierOptions as $opt)
                             <option value="{{ $opt }}" @selected($opt === $assigned2Default)>{{ $opt }}</option>
@@ -211,18 +219,37 @@ $supplierOptions = array_unique([
                 </td>
                 {{-- Assigned Supplier 3 --}}
                 <td class="px-4 py-3 bg-fuchsia-50 whitespace-nowrap">
-                    <select name="assigned_supplier3[{{ $row->item_id }}]"
-                            class="text-xs border border-fuchsia-300 rounded px-2 py-1 bg-white text-fuchsia-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 w-44">
+                    <select class="sel-s3 text-xs border border-fuchsia-300 rounded px-2 py-1 bg-white text-fuchsia-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 w-44">
                         <option value="">— Select —</option>
                         @foreach($supplierOptions as $opt)
                             <option value="{{ $opt }}" @selected($opt === $assigned3Default)>{{ $opt }}</option>
                         @endforeach
                     </select>
                 </td>
+                {{-- Processed button --}}
+                <td class="px-4 py-3 bg-green-50 whitespace-nowrap text-center">
+                    @if($isProcessed)
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="text-green-700 font-semibold text-xs">✅ Processed</span>
+                            @if($row->processed_at)
+                                <span class="text-gray-400 text-xs">{{ \Carbon\Carbon::parse($row->processed_at)->format('d M Y') }}</span>
+                            @endif
+                            <button onclick="markRow(this, false)"
+                                    class="text-xs text-gray-400 hover:text-red-500 underline mt-0.5">
+                                Undo
+                            </button>
+                        </div>
+                    @else
+                        <button onclick="markRow(this, true)"
+                                class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg whitespace-nowrap">
+                            ✔ Mark Processed
+                        </button>
+                    @endif
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="31" class="px-4 py-10 text-center text-gray-400">
+                <td colspan="32" class="px-4 py-10 text-center text-gray-400">
                     No items found.
                 </td>
             </tr>
@@ -253,6 +280,61 @@ function toggleDetailCols() {
     });
     document.getElementById('toggleIcon').textContent  = detailsVisible ? '▼' : '▶';
     document.getElementById('toggleLabel').textContent = detailsVisible ? 'Hide Details' : 'Show Details';
+}
+
+function markRow(btn, isProcessed) {
+    const tr = btn.closest('tr');
+    const itemId  = tr.dataset.itemId;
+    const saveUrl = tr.dataset.saveUrl;
+
+    const s1 = tr.querySelector('.sel-s1')?.value ?? '';
+    const s2 = tr.querySelector('.sel-s2')?.value ?? '';
+    const s3 = tr.querySelector('.sel-s3')?.value ?? '';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    fetch(saveUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            assigned_supplier:  s1,
+            assigned_supplier2: s2,
+            assigned_supplier3: s3,
+            is_processed: isProcessed,
+        }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const statusCell = btn.closest('td');
+            if (isProcessed) {
+                tr.classList.add('row-processed');
+                const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+                statusCell.innerHTML = `
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="text-green-700 font-semibold text-xs">✅ Processed</span>
+                        <span class="text-gray-400 text-xs">${today}</span>
+                        <button onclick="markRow(this, false)" class="text-xs text-gray-400 hover:text-red-500 underline mt-0.5">Undo</button>
+                    </div>`;
+            } else {
+                tr.classList.remove('row-processed');
+                tr.querySelectorAll('select').forEach(s => s.style.pointerEvents = '');
+                statusCell.innerHTML = `<button onclick="markRow(this, true)" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg whitespace-nowrap">✔ Mark Processed</button>`;
+            }
+        }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.textContent = isProcessed ? '✔ Mark Processed' : 'Undo';
+        alert('Failed to save. Please try again.');
+    });
 }
 </script>
 

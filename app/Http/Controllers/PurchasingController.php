@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\PurchasingAssignment;
 use App\Services\SupplierRecommendationService;
 use App\Services\SupplierBrandService;
 use App\Services\SupplierSubcategoryService;
@@ -32,6 +33,7 @@ class PurchasingController extends Controller
                 $join->on('sr_ti.item_id', '=', 'items.id')
                      ->where('sr_ti.supplier', '=', 'ti');
             })
+            ->leftJoin('purchasing_assignments as pa', 'pa.item_id', '=', 'items.id')
             ->select(
                 'items.id as item_id',
                 'rfqs.notes_to_purchasing',
@@ -53,7 +55,13 @@ class PurchasingController extends Controller
                 // Unit prices for volume calculation (mouser → digikey → ti)
                 'sr_mouser.unit_price as mouser_unit_price',
                 'sr_digikey.unit_price as digikey_unit_price',
-                'sr_ti.unit_price as ti_unit_price'
+                'sr_ti.unit_price as ti_unit_price',
+                // Saved assignment data
+                'pa.assigned_supplier as saved_supplier1',
+                'pa.assigned_supplier2 as saved_supplier2',
+                'pa.assigned_supplier3 as saved_supplier3',
+                'pa.is_processed',
+                'pa.processed_at'
             )
             ->orderBy('rfqs.date', 'desc')
             ->orderBy('rfqs.created_at', 'desc')
@@ -152,5 +160,23 @@ class PurchasingController extends Controller
         });
 
         return view('purchasing.index', compact('rows'));
+    }
+
+    public function save(Request $request, string $itemId)
+    {
+        $isProcessed = $request->boolean('is_processed');
+
+        PurchasingAssignment::updateOrCreate(
+            ['item_id' => $itemId],
+            [
+                'assigned_supplier'  => $request->input('assigned_supplier'),
+                'assigned_supplier2' => $request->input('assigned_supplier2'),
+                'assigned_supplier3' => $request->input('assigned_supplier3'),
+                'is_processed'       => $isProcessed,
+                'processed_at'       => $isProcessed ? now() : null,
+            ]
+        );
+
+        return response()->json(['success' => true]);
     }
 }

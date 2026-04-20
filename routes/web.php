@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
 
     // Purchasing
     Route::get('/purchasing', [PurchasingController::class, 'index'])->name('purchasing.index');
+    Route::post('/purchasing/{itemId}/save', [PurchasingController::class, 'save'])->name('purchasing.save');
 
     // SMO Suppliers
     Route::get('/smo-suppliers', [SmoSupplierController::class, 'index'])->name('smo_suppliers.index');
